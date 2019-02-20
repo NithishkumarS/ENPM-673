@@ -34,7 +34,9 @@ def main():
         dst_total = np.zeros(gray.shape, dtype ='uint8')
         heirarchy = heirarchy[0]
         corner = np.zeros(4)
+        corner_points = np.zeros((1,2))
         for component in zip(contours, heirarchy):
+
             currentHierarchy = component[1]
             currentContour = component[0]
             size = cv2.minAreaRect(component[0])
@@ -66,14 +68,15 @@ def main():
                 corner[2] = np.argmax(corners[:,1], axis = 0)
                 corner[3] = np.argmin(corners[:,1], axis = 0)
                 corners = np.delete(corners, np.setdiff1d(corners, temp_corners), axis = 0)
-                print(corners)
+                corner_points = np.concatenate((corner_points, corners), axis = 0)
 
+        corner_points = np.delete(corner_points, (0), axis=0)
         frame_modi = frame
         frame_modi[dst_total>0.01*dst_total.max()]=[0,0,255]
         cv2.imshow('frame', dst)
         cv2.imshow('Harris corner detector', frame_modi)
 
-        if cv2.waitKey(1) & 0xFF == ord('q'):
+        if cv2.waitKey(0) & 0xFF == ord('q'):
             break
 
     cap.release()
