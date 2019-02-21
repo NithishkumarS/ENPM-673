@@ -11,25 +11,23 @@ __license__ = "MIT"
 import numpy as np
 import matplotlib.pyplot as plt
 import os, sys
-from homography import homographicTransform
-
 # This try-catch is a workaround for Python3 when used with ROS; it is not needed for most platforms
 try:
     sys.path.remove('/opt/ros/kinetic/lib/python2.7/dist-packages')
 except:
     pass
-
+from homography import homographicTransform
 import cv2
 
 def main():
     """ Main entry point of the app """
-    cap = cv2.VideoCapture('Tag1.mp4')
+    cap = cv2.VideoCapture('Tag0.mp4')
     while(cap.isOpened()):
         ret, frame = cap.read()
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         gray = cv2.GaussianBlur(gray,(5,5), 0)
         ret, thresh = cv2.threshold(gray, 240, 255,0, cv2.THRESH_BINARY)
-        _,contours, heirarchy = cv2.findContours(thresh,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+        contours, heirarchy = cv2.findContours(thresh,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
         contour_sizes = [(cv2.contourArea(contour), contour) for contour in contours]
         biggest_contour = max(contour_sizes, key=lambda x: x[0])[1]
         dst_total = np.zeros(gray.shape, dtype ='uint8')
@@ -64,25 +62,45 @@ def main():
                 dst_total = dst + dst_total
                 corners = np.delete(corners, (0), axis=0)
                 temp_corners = np.arange(len(corners))
-                corner[0] = np.argmax(corners[:,0], axis = 0)
-                corner[1] = np.argmax(corners[:,1], axis = 0)
-                corner[3] = np.argmin(corners[:,0], axis = 0)
-                corner[2] = np.argmin(corners[:,1], axis = 0)
+                corner[0] = np.argmin(corners[:,0], axis = 0)
+                corner[1] = np.argmin(corners[:,1], axis = 0)
+                corner[2] = np.argmax(corners[:,0], axis = 0)
+                corner[3] = np.argmax(corners[:,1], axis = 0)
                 corners = np.delete(corners, np.setdiff1d(corners, temp_corners), axis = 0)
                 corner_points = np.concatenate((corner_points, corners), axis = 0)
-                
+
         corner_points = np.delete(corner_points, (0), axis=0)
         corner = np.rint(corner)
         corner = corner.astype(int)
         corner_points = (np.rint(corner_points)).astype(int)
-        print((corner_points[corner[3]][0]  ))
-        
-        
-        segment =  gray[(corner_points[corner[2]][1] ):(corner_points[corner[1]][1]),(corner_points[corner[3]][0] ):(corner_points[corner[0]][0] )]
-        cv2.imshow('Segment of AR', segment)       
-        H = homographicTransform(corner_points)
-        dst = cv2.warpPerspective(segment,H,(200,200))
-        cv2.imshow('Transformed',dst)
+        print('corner')
+        print(corner)
+        print('corner_points')
+        print(corner_points)
+
+
+        segment =  gray[(corner_points[corner[1]][1] ):(corner_points[corner[3]][1]),(corner_points[corner[0]][0] ):(corner_points[corner[2]][0] )]
+        cv2.imshow('Segment of AR', segment)
+        H = homographicTransform(corner_points,corner)
+        transformed_image = np.zeros((200,200))
+        h_inv = np.linalg.inv(H)
+        print('h_inv')
+        print(np.matmul(h_inv,[199,199,1])/np.matmul(h_inv,[199,199,1])[2])
+        for row in  range(0,200):
+            for col in range(0,200):
+                X_dash = np.array([col,row,1]).T
+                X = np.matmul(h_inv,X_dash)
+                X = (X/X[2]);
+                X = X.astype(int);
+                print(X)
+                transformed_image[row,col] = gray[X(1),X(0)]
+
+        cv2.imshow('QR_image',transformed_image)
+
+
+
+        #dst = cv2.warpPerspective(segment,H,(200,200))
+        #cv2.imshow('Transformed',dst)
         frame_modi = frame
         frame_modi[dst_total>0.01*dst_total.max()]=[0,0,255]
         # cv2.imshow('frame', dst)
