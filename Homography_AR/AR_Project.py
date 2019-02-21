@@ -17,6 +17,7 @@ try:
 except:
     pass
 from homography import homographicTransform
+from ARTag_Decoder import decode
 import cv2
 
 def main():
@@ -78,27 +79,27 @@ def main():
         print('corner_points')
         print(corner_points)
 
-
         segment =  gray[(corner_points[corner[1]][1] ):(corner_points[corner[3]][1]),(corner_points[corner[0]][0] ):(corner_points[corner[2]][0] )]
         cv2.imshow('Segment of AR', segment)
         H = homographicTransform(corner_points,corner)
-        transformed_image = np.zeros((200,200))
+        transformed_image = np.zeros((200,200), dtype='uint8')
         h_inv = np.linalg.inv(H)
         print('h_inv')
-        print(np.matmul(h_inv,[199,199,1])/np.matmul(h_inv,[199,199,1])[2])
+        print(h_inv)
         for row in  range(0,200):
             for col in range(0,200):
                 X_dash = np.array([col,row,1]).T
                 X = np.matmul(h_inv,X_dash)
-                X = (X/X[2]);
-                X = X.astype(int);
-                print(X)
-                transformed_image[row,col] = gray[X(1),X(0)]
+                X = (X/X[2])
+                X = X.astype(int)
+                #print(X)
+                #print(gray.shape)
+                #print(gray[X[1]][X[0]])
+                transformed_image[col][row] = gray[X[1]][X[0]]
 
         cv2.imshow('QR_image',transformed_image)
-
-
-
+        ID_val = decode(transformed_image)
+        print(ID_val)
         #dst = cv2.warpPerspective(segment,H,(200,200))
         #cv2.imshow('Transformed',dst)
         frame_modi = frame
