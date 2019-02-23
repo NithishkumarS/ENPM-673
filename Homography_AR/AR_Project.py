@@ -1,122 +1,124 @@
 #!/usr/bin/env python3
-# =====================================
+#=====================================
 # Author: Nantha Kumar Sunder
 # Description:
-# =====================================
+#=====================================
 
 __author__ = "Nantha Kumar Sunder"
 __version__ = "0.1.0"
 __license__ = "MIT"
 
-import os
-import sys
-
-import cv2
-import matplotlib.pyplot as plt
 import numpy as np
-
-from ARTag_Decoder import decode
-from homography import homographicTransform
-
+import matplotlib.pyplot as plt
+import os, sys
 # This try-catch is a workaround for Python3 when used with ROS; it is not needed for most platforms
 try:
     sys.path.remove('/opt/ros/kinetic/lib/python2.7/dist-packages')
 except:
     pass
+from homography import homographicTransform
+from ARTag_Decoder import decode
+import cv2
 
+def sortCorners(__corners__):
+    corner = np.zeros((4,1))
+    corner[0] = np.argmin(__corners__[:,0], axis = 0)
+    corner[1] = np.argmin(__corners__[:,1], axis = 0)
+    corner[2] = np.argmax(__corners__[:,0], axis = 0)
+    corner[3] = np.argmax(__corners__[:,1], axis = 0)
+    return corner
 
 def main():
     """ Main entry point of the app """
-    cap = cv2.VideoCapture('Tag0.mp4')
+    cap = cv2.VideoCapture('multipleTags.mp4')
     while(cap.isOpened()):
         ret, frame = cap.read()
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-<<<<<<< HEAD
         gray = cv2.GaussianBlur(gray,(5,5), 0)
         ret, thresh = cv2.threshold(gray, 240, 255,0, cv2.THRESH_BINARY)
-        _contours, heirarchy = cv2.findContours(thresh,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
-=======
-        gray = cv2.GaussianBlur(gray, (5, 5), 0)
-        ret, thresh = cv2.threshold(gray, 240, 255, 0, cv2.THRESH_BINARY)
-        _, contours, heirarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
->>>>>>> 654d53d48c54cb6eb74b871ef2842218596b94e6
+        contours, heirarchy = cv2.findContours(thresh,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
         contour_sizes = [(cv2.contourArea(contour), contour) for contour in contours]
         biggest_contour = max(contour_sizes, key=lambda x: x[0])[1]
-        dst_total = np.zeros(gray.shape, dtype='uint8')
+        dst_total = np.zeros(gray.shape, dtype ='uint8')
         heirarchy = heirarchy[0]
-        corner = np.zeros(4)
-        corner_points = np.zeros((1, 2))
+        corner_idx_temp = np.zeros((4,1))
+        corner_idx = np.zeros((1,1))
+        corner_points = np.zeros((1,2))
         for component in zip(contours, heirarchy):
-
             currentHierarchy = component[1]
             currentContour = component[0]
             size = cv2.minAreaRect(component[0])
-            isSecond = 0
+            isSecond =0;
             idx = currentHierarchy[3]
             while True:
                 if idx == -1:
                     break
                 isSecond = isSecond + 1
                 idx = heirarchy[idx][3]
-            if isSecond == 1:
+            if isSecond==1:
                 gray_fl = np.float32(gray)
-                mask = np.zeros(gray_fl.shape, dtype='uint8')
-                mask = cv2.GaussianBlur(mask, (3, 3), 0)
-                cv2.fillPoly(mask, [currentContour], (255, 255, 255))
-                dst = cv2.cornerHarris(mask, 5, 3, 0.04)
-                dst = cv2.dilate(dst, None)
-                ret, dst = cv2.threshold(dst, 0.1*dst.max(), 255, 0)
+                mask = np.zeros(gray_fl.shape, dtype ='uint8')
+                mask = cv2.GaussianBlur(mask,(3,3), 0)
+                cv2.fillPoly(mask, [currentContour], (255,255,255))
+                dst = cv2.cornerHarris(mask,5,3,0.04)
+                dst = cv2.dilate(dst,None)
+                ret, dst = cv2.threshold(dst, 0.1*dst.max(),255,0)
                 dst = np.uint8(dst)
-                cv2.drawContours(frame, [currentContour], -1, (0, 255, 0), 3)
+                cv2.drawContours(frame, [currentContour], -1, (0,255,0), 3)
                 ret, labels, stats, centroids = cv2.connectedComponentsWithStats(dst)
                 criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 0.001)
-                corners = cv2.cornerSubPix(gray_fl, np.float32(
-                    centroids), (5, 5), (-1, -1), criteria)
+                corners = cv2.cornerSubPix(gray_fl, np.float32(centroids), (5,5), (-1,-1), criteria)
                 dst_total = dst + dst_total
                 corners = np.delete(corners, (0), axis=0)
                 temp_corners = np.arange(len(corners))
-                corner[0] = np.argmin(corners[:, 0], axis=0)
-                corner[1] = np.argmin(corners[:, 1], axis=0)
-                corner[2] = np.argmax(corners[:, 0], axis=0)
-                corner[3] = np.argmax(corners[:, 1], axis=0)
-                corners = np.delete(corners, np.setdiff1d(corners, temp_corners), axis=0)
-                corner_points = np.concatenate((corner_points, corners), axis=0)
+                corner_idx_temp = sortCorners(corners)
+                corners = np.delete(corners, np.setdiff1d(temp_corners, corner_idx_temp), axis = 0)
+                corner_idx_temp = sortCorners(corners)
+                corner_points = np.concatenate((corner_points, corners), axis = 0)
+                corner_idx = np.concatenate((corner_idx, corner_idx_temp), axis = 0)
 
+        corner_idx = np.delete(corner_idx, (0), axis=0)
         corner_points = np.delete(corner_points, (0), axis=0)
-        corner = np.rint(corner)
-        corner = corner.astype(int)
+        corner_idx = np.rint(corner_idx)
+        corner_idx = corner_idx.astype(int)
         corner_points = (np.rint(corner_points)).astype(int)
         print('corner')
-        print(corner)
+        print(corner_idx)
         print('corner_points')
         print(corner_points)
+        total_tags = np.int(len(corner_idx)/4);
+        print('total_tags')
+        print(total_tags)
+        for tag_no in range(0,total_tags):
+            print((corner_points))
+            #segment =  gray[(corner_points[corner[1]][1] ):(corner_points[corner[3]][1]),(corner_points[corner[0]][0] ):(corner_points[corner[2]][0] )]
+            #cv2.imshow('Segment of AR', segment)
+            #H = homographicTransform(corner_points,corner_idx)
 
-        segment = gray[(corner_points[corner[1]][1]):(corner_points[corner[3]][1]),
-                       (corner_points[corner[0]][0]):(corner_points[corner[2]][0])]
-        cv2.imshow('Segment of AR', segment)
-        H = homographicTransform(corner_points, corner)
-        transformed_image = np.zeros((200, 200), dtype='uint8')
-        h_inv = np.linalg.inv(H)
-        print('h_inv')
-        print(h_inv)
-        for row in range(0, 200):
-            for col in range(0, 200):
-                X_dash = np.array([col, row, 1]).T
-                X = np.matmul(h_inv, X_dash)
-                X = (X/X[2])
-                X = X.astype(int)
-                # print(X)
-                # print(gray.shape)
-                # print(gray[X[1]][X[0]])
-                transformed_image[col][row] = gray[X[1]][X[0]]
-
-        cv2.imshow('QR_image', transformed_image)
-        ID_val = decode(transformed_image)
-        print(ID_val)
+            H = homographicTransform(corner_points[4*tag_no:4*tag_no+4][:],(corner_idx[4*tag_no:4*tag_no+4]-4*tag_no))
+            transformed_image = np.zeros((200,200), dtype='uint8')
+            h_inv = np.linalg.inv(H)
+            #print('h_inv')
+            #print(h_inv)
+            for row in  range(0,200):
+                for col in range(0,200):
+                    X_dash = np.array([col,row,1]).T
+                    X = np.matmul(h_inv,X_dash)
+                    X = (X/X[2])
+                    X = X.astype(int)
+                    #print(X)
+                    #print(gray.shape)
+                    #print(gray[X[1]][X[0]])
+                    transformed_image[col][row] = gray[X[1]][X[0]]
+            cv2.imshow('QR_image',transformed_image)
+            ID_val = decode(transformed_image)
+            print(ID_val)
+            if cv2.waitKey(0) & 0xFF == ord('q'):
+                break
         #dst = cv2.warpPerspective(segment,H,(200,200))
-        # cv2.imshow('Transformed',dst)
+        #cv2.imshow('Transformed',dst)
         frame_modi = frame
-        frame_modi[dst_total > 0.01*dst_total.max()] = [0, 0, 255]
+        frame_modi[dst_total>0.01*dst_total.max()]=[0,0,255]
         # cv2.imshow('frame', dst)
         cv2.imshow('Harris corner detector', frame_modi)
 
@@ -125,7 +127,6 @@ def main():
 
     cap.release()
     cv2.destroyAllWindows()
-
 
 if __name__ == "__main__":
     """ This is executed when run from the command line """
