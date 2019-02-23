@@ -7,9 +7,10 @@ def homographicTransform(cornerPoints, corner):
     contourCount = len(cornerPoints) / 4
     print(cornerPoints)
     if contourCount == 1:
-        Xw = [cornerPoints[corner[0]], cornerPoints[corner[1]],
-              cornerPoints[corner[2]], cornerPoints[corner[3]]]
+        Xw = np.concatenate((cornerPoints[corner[0]], cornerPoints[corner[1]],
+              cornerPoints[corner[2]], cornerPoints[corner[3]]), axis=0)
         print('Xw')
+        print(Xw)
         print(np.asmatrix(Xw))
 
     Xc = np.array([[0, 0], [199, 0], [199, 199], [0, 199]])
