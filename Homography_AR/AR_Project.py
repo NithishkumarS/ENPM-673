@@ -28,7 +28,7 @@ def main():
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         gray = cv2.GaussianBlur(gray,(5,5), 0)
         ret, thresh = cv2.threshold(gray, 240, 255,0, cv2.THRESH_BINARY)
-        contours, heirarchy = cv2.findContours(thresh,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+        _contours, heirarchy = cv2.findContours(thresh,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
         contour_sizes = [(cv2.contourArea(contour), contour) for contour in contours]
         biggest_contour = max(contour_sizes, key=lambda x: x[0])[1]
         dst_total = np.zeros(gray.shape, dtype ='uint8')
