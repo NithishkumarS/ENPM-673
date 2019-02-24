@@ -3,12 +3,13 @@ import cv2
 import numpy as np
 
 
-def homographicTransform(cornerPoints, corner):
+def homographicTransform(cornerPoints):
+#corner):
     contourCount = len(cornerPoints) / 4
     print(cornerPoints)
     if contourCount == 1:
-        Xw = np.concatenate((cornerPoints[corner[0]], cornerPoints[corner[1]],
-              cornerPoints[corner[2]], cornerPoints[corner[3]]), axis=0)
+        Xw = cornerPoints #np.concatenate((cornerPoints[corner[0]], cornerPoints[corner[1]],
+             # cornerPoints[corner[2]], cornerPoints[corner[3]]), axis=0)
         print('Xw')
         print(Xw)
         print(np.asmatrix(Xw))
@@ -61,3 +62,4 @@ def homographicTransform(cornerPoints, corner):
     #cv2.imshow( "Display window", dst )
     # cv2.waitKey(1)
     # cv2.destroyAllWindows()
+

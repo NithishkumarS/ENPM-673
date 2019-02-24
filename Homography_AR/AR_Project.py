@@ -21,16 +21,20 @@ from ARTag_Decoder import decode
 import cv2
 
 def sortCorners(__corners__):
-    corner = np.zeros((4,1))
-    corner[0] = np.argmin(__corners__[:,0], axis = 0)
-    corner[1] = np.argmin(__corners__[:,1], axis = 0)
-    corner[2] = np.argmax(__corners__[:,0], axis = 0)
-    corner[3] = np.argmax(__corners__[:,1], axis = 0)
-    return corner
+    corner_points = np.zeros((__corners__.shape))
+    corner_points[0,:] = __corners__[np.argmin(__corners__[:,0], axis = 0),:]
+    __corners__ = np.delete(__corners__, (np.argmin(__corners__[:,0])), axis = 0)
+    corner_points[1,:] = __corners__[np.argmin(__corners__[:,1], axis = 0),:]
+    __corners__ = np.delete(__corners__, (np.argmin(__corners__[:,1])), axis = 0)
+    corner_points[2,:] = __corners__[np.argmax(__corners__[:,0], axis = 0),:]
+    __corners__ = np.delete(__corners__, (np.argmax(__corners__[:,0])), axis = 0)
+    corner_points[3,:] = __corners__[np.argmax(__corners__[:,1], axis = 0),:]
+    __corners__ = np.delete(__corners__, (np.argmax(__corners__[:,1])), axis = 0)
+    return corner_points
 
 def main():
     """ Main entry point of the app """
-    cap = cv2.VideoCapture('multipleTags.mp4')
+    cap = cv2.VideoCapture('Tag1.mp4')
     while(cap.isOpened()):
         ret, frame = cap.read()
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -70,59 +74,52 @@ def main():
                 corners = cv2.cornerSubPix(gray_fl, np.float32(centroids), (5,5), (-1,-1), criteria)
                 dst_total = dst + dst_total
                 corners = np.delete(corners, (0), axis=0)
-                temp_corners = np.arange(len(corners))
-                corner_idx_temp = sortCorners(corners)
-                corners = np.delete(corners, np.setdiff1d(temp_corners, corner_idx_temp), axis = 0)
-                corner_idx_temp = sortCorners(corners)
+                print(corners)
+                if (len(corners) < 4):
+                    break
+                #corner_idx_temp = sortCorners(corners)
+                #corners = np.delete(corners, np.setdiff1d(np.arange(len(corners)), corner_idx_temp), axis = 0)
+                corners = sortCorners(corners)
                 corner_points = np.concatenate((corner_points, corners), axis = 0)
-                corner_idx = np.concatenate((corner_idx, corner_idx_temp), axis = 0)
+                #corner_idx = np.concatenate((corner_idx, corner_idx_temp), axis = 0)
 
-        corner_idx = np.delete(corner_idx, (0), axis=0)
+        #corner_idx = np.delete(corner_idx, (0), axis=0)
         corner_points = np.delete(corner_points, (0), axis=0)
-        corner_idx = np.rint(corner_idx)
-        corner_idx = corner_idx.astype(int)
+        #corner_idx = np.rint(corner_idx)
+        #corner_idx = corner_idx.astype(int)
         corner_points = (np.rint(corner_points)).astype(int)
-        print('corner')
-        print(corner_idx)
+        #print('corner')
+        #print(corner_idx)
         print('corner_points')
         print(corner_points)
-        total_tags = np.int(len(corner_idx)/4);
+        total_tags = np.int(len(corner_points)/4);
         print('total_tags')
         print(total_tags)
         for tag_no in range(0,total_tags):
-            print((corner_points))
-            #segment =  gray[(corner_points[corner[1]][1] ):(corner_points[corner[3]][1]),(corner_points[corner[0]][0] ):(corner_points[corner[2]][0] )]
-            #cv2.imshow('Segment of AR', segment)
-            #H = homographicTransform(corner_points,corner_idx)
+            #print('inside each tag')
+            #print((corner_points[4*tag_no:4*tag_no+4][:]) )
+            #print((corner_idx[4*tag_no:4*tag_no+4]))
 
-            H = homographicTransform(corner_points[4*tag_no:4*tag_no+4][:],(corner_idx[4*tag_no:4*tag_no+4]-4*tag_no))
+            H = homographicTransform(corner_points[4*tag_no:4*tag_no+4][:])#,(corner_idx[4*tag_no:4*tag_no+4]))
             transformed_image = np.zeros((200,200), dtype='uint8')
             h_inv = np.linalg.inv(H)
-            #print('h_inv')
-            #print(h_inv)
             for row in  range(0,200):
                 for col in range(0,200):
                     X_dash = np.array([col,row,1]).T
                     X = np.matmul(h_inv,X_dash)
                     X = (X/X[2])
                     X = X.astype(int)
-                    #print(X)
-                    #print(gray.shape)
-                    #print(gray[X[1]][X[0]])
                     transformed_image[col][row] = gray[X[1]][X[0]]
-            cv2.imshow('QR_image',transformed_image)
+            #cv2.imshow('QR_image',transformed_image)
             ID_val = decode(transformed_image)
             print(ID_val)
-            if cv2.waitKey(0) & 0xFF == ord('q'):
+            if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
-        #dst = cv2.warpPerspective(segment,H,(200,200))
-        #cv2.imshow('Transformed',dst)
         frame_modi = frame
         frame_modi[dst_total>0.01*dst_total.max()]=[0,0,255]
-        # cv2.imshow('frame', dst)
         cv2.imshow('Harris corner detector', frame_modi)
 
-        if cv2.waitKey(0) & 0xFF == ord('q'):
+        if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
     cap.release()
@@ -131,3 +128,4 @@ def main():
 if __name__ == "__main__":
     """ This is executed when run from the command line """
     main()
+
