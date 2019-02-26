@@ -34,7 +34,8 @@ def getTransfomredImage(h_inv, gray):
             Xw = np.matmul(h_inv,Xc)
             Xw = (Xw/Xw[2])
             Xw = Xw.astype(int)
-            transformed_image[col][row] = gray[Xw[1]][Xw[0]]
+            transformed_image[row][col] = gray[Xw[1]][Xw[0]]
+    #print(transformed_image)
     return transformed_image
 
 def main():
@@ -53,12 +54,11 @@ def main():
             h_inv = np.linalg.inv(H)
             transformed_image = getTransfomredImage(h_inv, gray)
             ID_val = decode(transformed_image)
-            print(['Tag ' + str(tag_no + 1 ) + ' value: ' + str(ID_val)])
             cv2.putText(frame,'Tag ' + str(tag_no + 1) + ' value: ' + str(ID_val),(10,100 + 50*tag_no), font, 2, (200,255,155), 2, cv2.LINE_AA)
-            print(ID_val)
+            #print(ID_val)
         frame[dst_total>0.01*dst_total.max()]=[0,0,255]
         cv2.imshow('Harris corner detector', frame)
-        if cv2.waitKey(1) & 0xFF == ord('q'):
+        if cv2.waitKey(0) & 0xFF == ord('q'):
             break
     cap.release()
     cv2.destroyAllWindows()

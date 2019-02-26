@@ -19,7 +19,7 @@ def decode(A):
     mean = np.zeros([8, 8], dtype=int)
     row = 0
     col = 0
-    threshold = 255/2
+    threshold = 220
     # Converting to 8*8 from m*n based on given AR Tag
     while(mm <= A.shape[0] and nn <= A.shape[1]):
         nn = n + N
@@ -35,12 +35,14 @@ def decode(A):
             m = m + M
             mm = mm + M
             n = 0
+    #print('mean\n',mean)
     for i in range(0, 3):
         rotated_mean = np.rot90(mean, i)
         # Detecting orientation based on reference
         if int(rotated_mean[5, 5]) == 1:
             binary = '%s%s%s%s' % (rotated_mean[3, 3], rotated_mean[3, 4],
                                    rotated_mean[4, 3], rotated_mean[4, 4])
+            #print(binary)
             ID = int(binary, 2)
             break
     return ID
