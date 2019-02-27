@@ -26,10 +26,10 @@ def getVideoFile(usr_input):
     }
     return switcher.get(usr_input, 'Input Sequences/Tag0.mp4' )
 
-def getTransfomredImage(h_inv, gray):
-    transformed_image = np.zeros((200,200), dtype='uint8')
-    for row in  range(0,200):
-        for col in range(0,200):
+def getTransfomredImage(h_inv, gray,n):
+    transformed_image = np.zeros((n,n), dtype='uint8')
+    for row in  range(0,n):
+        for col in range(0,n):
             Xc = np.array([col,row,1]).T
             Xw = np.matmul(h_inv,Xc)
             Xw = (Xw/Xw[2])
@@ -44,21 +44,22 @@ def main():
     print(getVideoFile(int(usr_input)))
     cap = cv2.VideoCapture(getVideoFile(int(usr_input)))
     font = cv2.FONT_HERSHEY_SIMPLEX
+    Xc = np.array([[0, 0], [199, 0], [199, 199], [0, 199]])
     while(cap.isOpened()):
         ret, frame = cap.read()
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         gray = cv2.GaussianBlur(gray,(5,5), 0)
         corner_points, dst_total, frame = getCornerPoints(frame)
         for tag_no in range(0, np.int(len(corner_points)/4)):
-            H = homographicTransform(corner_points[4*tag_no:4*tag_no+4][:])
+            H = homographicTransform(corner_points[4*tag_no:4*tag_no+4][:], Xc)
             h_inv = np.linalg.inv(H)
-            transformed_image = getTransfomredImage(h_inv, gray)
-            ID_val = decode(transformed_image)
+            transformed_image = getTransfomredImage(h_inv, gray,200)
+            ID_val,rotation = decode(transformed_image)
             cv2.putText(frame,'Tag ' + str(tag_no + 1) + ' value: ' + str(ID_val),(10,100 + 50*tag_no), font, 2, (200,255,155), 2, cv2.LINE_AA)
             #print(ID_val)
         frame[dst_total>0.01*dst_total.max()]=[0,0,255]
         cv2.imshow('Harris corner detector', frame)
-        if cv2.waitKey(0) & 0xFF == ord('q'):
+        if cv2.waitKey(1) & 0xFF == ord('q'):
             break
     cap.release()
     cv2.destroyAllWindows()
