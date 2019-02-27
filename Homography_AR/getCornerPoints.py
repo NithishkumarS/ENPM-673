@@ -15,7 +15,7 @@ except:
 import cv2
 
 def sortCorners(__corners__):
-    corner_points = np.zeros((__corners__.shape))
+    corner_points = np.zeros((4,2))
     corner_points[0,:] = __corners__[np.argmin(__corners__[:,0], axis = 0),:]
     __corners__ = np.delete(__corners__, (np.argmin(__corners__[:,0])), axis = 0)
     corner_points[1,:] = __corners__[np.argmin(__corners__[:,1], axis = 0),:]
@@ -48,6 +48,7 @@ def getCornerPoints(frame):
                 break
             isSecond = isSecond + 1
             idx = hierarchy[idx][3]
+        print(isSecond)
         if isSecond==1:
             gray_fl = np.float32(gray)
             mask = np.zeros(gray_fl.shape, dtype ='uint8')
@@ -71,7 +72,3 @@ def getCornerPoints(frame):
     corner_points = np.delete(corner_points, (0), axis=0)
     corner_points = (np.rint(corner_points)).astype(int)
     return corner_points, dst_total, frame
-
-if __name__ == "__main__":
-    """ This is executed when run from the command line """
-    main()
