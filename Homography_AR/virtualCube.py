@@ -3,7 +3,7 @@ import cv2
 import math
 
 def virtualCube(H,frame,cP):
-
+    print(cP)
     K = np.transpose( np.array( [[1406.08415449821,0,0 ], [2.20679787308599, 1417.99930662800,0], [1014.13643417416, 566.347754321696,1]]) )
     print(K)
 
