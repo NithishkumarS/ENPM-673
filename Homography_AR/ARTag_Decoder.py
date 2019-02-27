@@ -35,7 +35,7 @@ def decode(A):
             m = m + M
             mm = mm + M
             n = 0
-    #print('mean\n',mean)
+    print('mean\n',mean)
     for i in range(0, 3):
         rotated_mean = np.rot90(mean, i)
         # Detecting orientation based on reference
@@ -45,4 +45,6 @@ def decode(A):
             #print(binary)
             ID = int(binary, 2)
             break
-    return ID
+    print('rotated mean')
+    print(rotated_mean)
+    return ID,i
