@@ -8,8 +8,8 @@ def homographicTransform(cornerPoints, Xc):
     if contourCount == 1:
         Xw = cornerPoints #np.concatenate((cornerPoints[corner[0]], cornerPoints[corner[1]],
              # cornerPoints[corner[2]], cornerPoints[corner[3]]), axis=0)
-        #print('Xw')
-        #print(Xw)
+        print('Xw')
+        print(Xw)
         #print(np.asmatrix(Xw))
 
     A = np.zeros((1, 9), int)
@@ -17,12 +17,6 @@ def homographicTransform(cornerPoints, Xc):
     temp1 = np.zeros((1, 9), int)
     n = 1
     for i in range(0, 4):
-        '''
-        temp = np.array([Xw[i][0], Xw[i][1], 1, 0, 0, 0, (-Xc[i][0]) *
-                         (Xw[i][0]), (-Xc[i][0])*(Xw[i][1]), -Xc[i][0]])
-        temp1 = np.array([0, 0, 0, Xw[i][0], Xw[i][1], 1, (-Xc[i][1]) *
-                          (Xw[i][0]), (-Xc[i][1])*(Xw[i][1]), -Xc[i][1]])
-        '''
         temp = np.array([Xw[i][0], Xw[i][1], 1, 0, 0, 0, (-Xc[i][0]) *
                          (Xw[i][0]), (-Xc[i][0])*(Xw[i][1]), -Xc[i][0]])
         temp1 = np.array([0, 0, 0, Xw[i][0], Xw[i][1], 1, (-Xc[i][1]) *
@@ -46,7 +40,7 @@ def homographicTransform(cornerPoints, Xc):
     #print('H from cal')
     #print(H)
     #print(np.linalg.inv(H))
-   # H_cv, status = cv2.findHomography(np.asmatrix(Xw), np.asmatrix(Xc))
+    # H_cv, status = cv2.findHomography(np.asmatrix(Xw), np.asmatrix(Xc))
    # print('homography from function')
    # print(H_cv)
    # print(np.linalg.inv(H_cv))

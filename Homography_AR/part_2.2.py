@@ -36,7 +36,7 @@ def main():
         corner_points, dst_total, frame = getCornerPoints(frame)
         for tag_no in range(0, np.int(len(corner_points)/4)):
             H = homographicTransform(corner_points[4*tag_no:4*tag_no+4][:],Xc)
-            virtualCube(H,frame)
+            virtualCube(H,frame,corner_points[4*tag_no:4*tag_no+4][:])
         #cv2.imshow('Superimposed', frame)
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
@@ -46,5 +46,3 @@ def main():
 if __name__ == "__main__":
     """ This is executed when run from the command line """
     main()
-
-
