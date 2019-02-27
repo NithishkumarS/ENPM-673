@@ -1,6 +1,6 @@
 import numpy as np
 import cv2
-
+import math
 
 def virtualCube(H,frame):
         
@@ -9,17 +9,17 @@ def virtualCube(H,frame):
     
     #cornerPoints, corner = getCornerPoints(frame)
     #H_intial = homographicTransform(cornerPoints,corner)
-    
     print('homography matrix')
     print(H)
     B = np.matmul(np.linalg.inv(K), H)
+    
     det = np.linalg.det(B)
     print('det:',det)
     if det < 0 :
         B = -B
     print(B)
     
-    term =  np.linalg.norm(np.matmul(np.linalg.inv(K), H[:,0]) ) +  np.linalg.norm( np.matmul(np.linalg.inv(K), H[:,1]) )
+    term = np.linalg.norm(B[:,0]) +  np.linalg.norm( B[:,1])   #np.linalg.norm(np.matmul(np.linalg.inv(K), H[:,0]) ) +  np.linalg.norm( np.matmul(np.linalg.inv(K), H[:,1]) )
     lambda1 =  2/term
     
     print('Lambda:',lambda1)
@@ -35,10 +35,14 @@ def virtualCube(H,frame):
     print('projectionMat')
     print( projectionMat)
     
+    projectionMat1 = projection_matrix(K,H)
+    print('projectionMat1')
+    print( projectionMat1)
+    h_inv = np.linalg.inv(projectionMat)
     Xw = np.array([[0,0,-199,1],[199,0,-199,1],[199,199,-199,1],[0,199,-199,1]] )
     Xw = np.transpose(Xw)
         
-    Xc = np.matmul(projectionMat,Xw)
+    Xc = np.matmul(h_inv,Xw)
     print('Xc:')
     print(Xc.shape)
     
@@ -64,3 +68,31 @@ def virtualCube(H,frame):
     
     cv2.imshow('3D cube', frame) 
     
+    
+
+def projection_matrix(camera_parameters, homography):
+
+# Compute rotation along the x and y axis as well as the translation
+    homography = homography * (-1)
+    rot_and_transl = np.dot(np.linalg.inv(camera_parameters), homography)
+    col_1 = rot_and_transl[:, 0]
+    col_2 = rot_and_transl[:, 1]
+    col_3 = rot_and_transl[:, 2]
+    # normalise vectors
+    l = math.sqrt(np.linalg.norm(col_1, 2) * np.linalg.norm(col_2, 2))
+    rot_1 = col_1 / l
+    rot_2 = col_2 / l
+    translation = col_3 / l
+    # compute the orthonormal basis
+    c = rot_1 + rot_2
+    p = np.cross(rot_1, rot_2)
+    d = np.cross(c, p)
+    rot_1 = np.dot(c / np.linalg.norm(c, 2) + d / np.linalg.norm(d, 2), 1 / math.sqrt(2))
+    rot_2 = np.dot(c / np.linalg.norm(c, 2) - d / np.linalg.norm(d, 2), 1 / math.sqrt(2))
+    rot_3 = np.cross(rot_1, rot_2)
+    # finally, compute the 3D projection matrix from the model to the current frame
+    projection = np.stack((rot_1, rot_2, rot_3, translation)).T
+    return np.dot(camera_parameters, projection)
+    
+    
+        
