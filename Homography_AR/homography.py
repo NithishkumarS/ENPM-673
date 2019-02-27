@@ -36,16 +36,16 @@ def homographicTransform(cornerPoints, Xc):
         else:
             A = np.append(A, temp, axis=0)
 
-    print(A)
+    #print(A)
     U, s, V = np.linalg.svd(A)
 
     h = V[-1,:]/V[-1,-1]
-    print(h)
+    #print(h)
     H = (np.reshape(h, (3, 3)))
     # H = H/H[2][2]
-    print('H from cal')
-    print(H)
-    print(np.linalg.inv(H))
+    #print('H from cal')
+    #print(H)
+    #print(np.linalg.inv(H))
    # H_cv, status = cv2.findHomography(np.asmatrix(Xw), np.asmatrix(Xc))
    # print('homography from function')
    # print(H_cv)

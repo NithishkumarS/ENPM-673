@@ -30,7 +30,10 @@ def getCornerPoints(frame):
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     gray = cv2.GaussianBlur(gray,(5,5), 0)
     ret, thresh = cv2.threshold(gray, 240, 255,0, cv2.THRESH_BINARY)
-    _,contours, hierarchy = cv2.findContours(thresh,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+    try:
+        _,contours, hierarchy = cv2.findContours(thresh,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+    except:
+        contours, hierarchy = cv2.findContours(thresh,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
     dst_total = np.zeros(gray.shape, dtype ='uint8')
     hierarchy = hierarchy[0]
     corner_points = np.zeros((1,2))
