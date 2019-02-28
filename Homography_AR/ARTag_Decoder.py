@@ -35,16 +35,19 @@ def decode(A):
             m = m + M
             mm = mm + M
             n = 0
-    #print('mean\n',mean)
-    for i in range(0, 3):
+    for i in range(0, 4):
         rotated_mean = np.rot90(mean, i)
+        #print('rotated mean')
+        #print(rotated_mean)
+
+        #print(rotated_mean[5, 5])
         # Detecting orientation based on reference
         if int(rotated_mean[5, 5]) == 1:
+            #print(rotated_mean[3, 3])
             binary = '%s%s%s%s' % (rotated_mean[3, 3], rotated_mean[3, 4],
                                    rotated_mean[4, 3], rotated_mean[4, 4])
             #print(binary)
             ID = int(binary, 2)
             break
-    #print('rotated mean')
-    #print(rotated_mean)
+    #print(i)
     return ID,i

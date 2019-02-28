@@ -44,19 +44,23 @@ def main():
     print(getVideoFile(int(usr_input)))
     cap = cv2.VideoCapture(getVideoFile(int(usr_input)))
     font = cv2.FONT_HERSHEY_SIMPLEX
-    Xc = np.array([[0, 0], [199, 0], [199, 199], [0, 199]])
+    Xc = np.array([[0, 0], [0, 199], [199, 199], [199, 0]])
     while(cap.isOpened()):
         ret, frame = cap.read()
+        frame = np.array(frame, dtype=np.uint8)
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         gray = cv2.GaussianBlur(gray,(5,5), 0)
         corner_points, dst_total, frame = getCornerPoints(frame)
+        #print(corner_points.shape)
         for tag_no in range(0, np.int(len(corner_points)/4)):
             H = homographicTransform(corner_points[4*tag_no:4*tag_no+4][:], Xc)
             h_inv = np.linalg.inv(H)
             transformed_image = getTransfomredImage(h_inv, gray,200)
             ID_val,rotation = decode(transformed_image)
-            cv2.putText(frame,'Tag ' + str(tag_no + 1) + ' value: ' + str(ID_val),(10,100 + 50*tag_no), font, 2, (200,255,155), 2, cv2.LINE_AA)
-            #print(ID_val)
+            cv2.imshow('transformed_image',transformed_image)
+            cv2.putText(frame,'Tag ' + str(tag_no + 1) + ' value: ' + str(ID_val),(10,100 + 50*(2*tag_no-1)), font, 2, (200,255,155), 2, cv2.LINE_AA)
+            cv2.putText(frame,'Tag ' + str(tag_no + 1) + ' orientation: ' + str((4 - rotation)*90),(10,100 + 50*(2*tag_no+1)), font, 2, (200,255,155), 2, cv2.LINE_AA)
+            #print(ID_val)1
         frame[dst_total>0.01*dst_total.max()]=[0,0,255]
         cv2.imshow('Harris corner detector', frame)
         if cv2.waitKey(1) & 0xFF == ord('q'):
