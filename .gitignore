@@ -1,2 +1,4 @@
 Input Sequences/
 .DS_Store
+__pychache__/
+*.pyc
