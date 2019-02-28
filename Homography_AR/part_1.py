@@ -59,8 +59,6 @@ def main():
             ID_val,rotation = decode(transformed_image)
             cv2.imshow('transformed_image',transformed_image)
             cv2.putText(frame,'Tag ' + str(tag_no + 1) + ' value: ' + str(ID_val),(10,100 + 50*(2*tag_no-1)), font, 2, (200,255,155), 2, cv2.LINE_AA)
-            cv2.putText(frame,'Tag ' + str(tag_no + 1) + ' orientation: ' + str((4 - rotation)*90),(10,100 + 50*(2*tag_no+1)), font, 2, (200,255,155), 2, cv2.LINE_AA)
-            #print(ID_val)1
         frame[dst_total>0.01*dst_total.max()]=[0,0,255]
         cv2.imshow('Harris corner detector', frame)
         if cv2.waitKey(1) & 0xFF == ord('q'):

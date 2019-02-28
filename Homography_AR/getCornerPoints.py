@@ -44,6 +44,8 @@ def getCornerPoints(frame):
                 dst = cv2.dilate(dst, None)
                 ret, dst = cv2.threshold(dst, 0.1*dst.max(), 255, 0)
                 dst_total = dst + dst_total
-
                 corner_points.append(cnt)
-    return corner_points[0], dst_total, frame
+    if corner_points:
+        return corner_points[0], dst_total, frame
+    else:
+        return corner_points, dst_total, frame
