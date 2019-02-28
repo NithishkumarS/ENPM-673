@@ -30,7 +30,7 @@ def main():
     Xc = np.array([[0, 0], [199, 0], [199, 199], [0, 199]])
     while(cap.isOpened()):
         ret, frame = cap.read()
-        cv2.imshow('Normal', frame)
+        #cv2.imshow('Normal', frame)
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         gray = cv2.GaussianBlur(gray,(5,5), 0)
         corner_points, dst_total, frame = getCornerPoints(frame)
