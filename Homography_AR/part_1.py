@@ -1,46 +1,54 @@
 #!/usr/bin/env python3
 
-__author__ = "Nantha Kumar Sunder, Nithish Kumar"
+__author__ = "Nantha Kumar Sunder, Nithish Kumar, Rama Prashanth"
 __version__ = "0.1.0"
 __license__ = "MIT"
 
-import numpy as np
+import os
+import sys
+
+import cv2
 import matplotlib.pyplot as plt
-import os, sys
+import numpy as np
+
+from ARTag_Decoder import decode
+from getCornerPoints import getCornerPoints
+from homography import homographicTransform
+
 # This try-catch is a workaround for Python3 when used with ROS; it is not needed for most platforms
 try:
     sys.path.remove('/opt/ros/kinetic/lib/python2.7/dist-packages')
 except:
     pass
-import cv2
-from homography import homographicTransform
-from ARTag_Decoder import decode
-from getCornerPoints import getCornerPoints
+
 
 def getVideoFile(usr_input):
-    switcher =  {
+    switcher = {
         1: 'Input Sequences/Tag0.mp4',
         2: 'Input Sequences/Tag1.mp4',
         3: 'Input Sequences/Tag2.mp4',
         4: 'Input Sequences/multipleTags.mp4',
     }
-    return switcher.get(usr_input, 'Input Sequences/Tag0.mp4' )
+    return switcher.get(usr_input, 'Input Sequences/Tag0.mp4')
 
-def getTransfomredImage(h_inv, gray,n):
-    transformed_image = np.zeros((n,n), dtype='uint8')
-    for row in  range(0,n):
-        for col in range(0,n):
-            Xc = np.array([col,row,1]).T
-            Xw = np.matmul(h_inv,Xc)
+
+def getTransfomredImage(h_inv, gray, n):
+    transformed_image = np.zeros((n, n), dtype='uint8')
+    for row in range(0, n):
+        for col in range(0, n):
+            Xc = np.array([col, row, 1]).T
+            Xw = np.matmul(h_inv, Xc)
             Xw = (Xw/Xw[2])
             Xw = Xw.astype(int)
             transformed_image[row][col] = gray[Xw[1]][Xw[0]]
-    #print(transformed_image)
+    # print(transformed_image)
     return transformed_image
+
 
 def main():
     """ Main entry point of the app """
-    usr_input = input('Select the Video\n\n\t1. Tag0 \n\t2. Tag1 \n\t3. Tag2 \n\t4. multipleTags')
+    usr_input = input(
+        'Select the Video\n\t1. Tag0 \n\t2. Tag1 \n\t3. Tag2 \n\t4. multipleTags\n\nYour Choice: ')
     print(getVideoFile(int(usr_input)))
     cap = cv2.VideoCapture(getVideoFile(int(usr_input)))
     font = cv2.FONT_HERSHEY_SIMPLEX
@@ -49,7 +57,7 @@ def main():
         ret, frame = cap.read()
         frame = np.array(frame, dtype=np.uint8)
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        gray = cv2.GaussianBlur(gray,(5,5), 0)
+        gray = cv2.GaussianBlur(gray, (5, 5), 0)
         corner_points, dst_total, frame = getCornerPoints(frame)
         #print(corner_points.shape)
         for tag_no in range(0, np.int(len(corner_points)/4)):
@@ -65,6 +73,7 @@ def main():
             break
     cap.release()
     cv2.destroyAllWindows()
+
 
 if __name__ == "__main__":
     """ This is executed when run from the command line """
