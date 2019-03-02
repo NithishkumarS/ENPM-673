@@ -4,20 +4,16 @@ __author__ = "Nantha Kumar Sunder, Nithish Kumar"
 __version__ = "0.1.0"
 __license__ = "MIT"
 
+import numpy as np
+import matplotlib.pyplot as plt
 import os
 import sys
-
-import cv2
-import matplotlib.pyplot as plt
-import numpy as np
-from scipy.spatial import distance as dist
-
 # This try-catch is a workaround for Python3 when used with ROS; it is not needed for most platforms
 try:
     sys.path.remove('/opt/ros/kinetic/lib/python2.7/dist-packages')
 except:
     pass
-
+import cv2
 
 def getCornerPoints(frame):
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -30,7 +26,7 @@ def getCornerPoints(frame):
     dst_total = np.zeros(gray.shape, dtype='uint8')
     hierarchy = hierarchy[0]
     corner_points = []
-    for j, cnt in zip(hierarchy, contours):
+    for j,cnt in zip(hierarchy,contours):
         currentContour = cnt
         cnt_len = cv2.arcLength(cnt, True)
         cnt = cv2.approxPolyDP(cnt, 0.02*cnt_len, True)
@@ -48,7 +44,4 @@ def getCornerPoints(frame):
                 ret, dst = cv2.threshold(dst, 0.1*dst.max(), 255, 0)
                 dst_total = dst + dst_total
                 corner_points.append(cnt)
-    if corner_points:
-        return corner_points[0], dst_total, frame
-    else:
-        return corner_points, dst_total, frame
+    return corner_points, dst_total, frame

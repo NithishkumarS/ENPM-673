@@ -7,6 +7,11 @@ __license__ = "MIT"
 import os
 import sys
 
+# This try-catch is a workaround for Python3 when used with ROS; it is not needed for most platforms
+try:
+    sys.path.remove('/opt/ros/kinetic/lib/python2.7/dist-packages')
+except:
+    pass
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
@@ -17,11 +22,6 @@ from homography import homographicTransform
 from part_1 import getTransfomredImage, getVideoFile
 from virtualCube import virtualCube
 
-# This try-catch is a workaround for Python3 when used with ROS; it is not needed for most platforms
-try:
-    sys.path.remove('/opt/ros/kinetic/lib/python2.7/dist-packages')
-except:
-    pass
 
 
 def main():
@@ -34,15 +34,19 @@ def main():
     Xc = np.array([[0, 0], [199, 0], [199, 199], [0, 199]])
     while(cap.isOpened()):
         ret, frame = cap.read()
-        #cv2.imshow('Normal', frame)
-        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        gray = cv2.GaussianBlur(gray, (5, 5), 0)
-        corner_points, dst_total, frame = getCornerPoints(frame)
-        for tag_no in range(0, np.int(len(corner_points)/4)):
-            H = homographicTransform(corner_points[4*tag_no:4*tag_no+4][:], Xc)
-            virtualCube(H, frame, corner_points[4*tag_no:4*tag_no+4][:])
-        #cv2.imshow('Superimposed', frame)
-        if cv2.waitKey(1) & 0xFF == ord('q'):
+        if frame is not None:
+
+            frame = np.array(frame, dtype=np.uint8)
+            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            gray = cv2.GaussianBlur(gray, (5, 5), 0)
+            corner_points_temp, dst_total, frame = getCornerPoints(frame)
+            for tag_no in range(0, (len(corner_points_temp))):
+                corner_points = corner_points_temp[0]
+                H = homographicTransform(corner_points, Xc)
+                virtualCube(H, frame, corner_points[4*tag_no:4*tag_no+4][:])
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
+        else:
             break
     cap.release()
     cv2.destroyAllWindows()
