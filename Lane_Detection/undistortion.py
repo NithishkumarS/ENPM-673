@@ -10,9 +10,9 @@ def get_undistort(img):
     height, width = img.shape[:2]
     updatedCameraMarix, roi = cv2.getOptimalNewCameraMatrix(cameraMtx, dist,(width,height),0,(width,height))
     undistorted_img = cv2.undistort(img, cameraMtx,dist, None,updatedCameraMarix)
-    
+
     x,y,w,h = roi
     undistorted_img = undistorted_img[y:y+h, x:x+w]
     cv2.imshow('undistorted', undistorted_img)
     cv2.imwrite('calibresult.png',undistorted_img)
-    
+    return undistorted_img

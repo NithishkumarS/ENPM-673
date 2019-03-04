@@ -51,7 +51,7 @@ def main():
             Homography = homographicTransform(Xw, Xc)
             #print(Homography[0])
             transformed_image = getTransfomredImage(np.linalg.inv(Homography[0]), gray, 200)
-            get_undistort(transformed_image)
+            undistorted_img = get_undistort(transformed_image)
             cv2.drawContours(frame, contours, -1, (0, 255, 0), 3)
             cv2.imshow('transformed_image', transformed_image)
             cv2.imshow('Lane Detection', cropped_image)
