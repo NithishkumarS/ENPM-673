@@ -17,6 +17,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from homography import homographicTransform
 from homography import getTransfomredImage
+from undistortion import get_undistort
 def getVideoFile(usr_input):
     switcher = {
         1: 'challenge_video.mp4',
@@ -43,10 +44,11 @@ def main():
             cropped_image = gray
             cropped_image[0:int(image_shape[0]*2/3),:] = 1
             ret, thresh = cv2.threshold(cropped_image, 150, 255, 0, cv2.THRESH_BINARY)
-            contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+            _,contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
             Homography = homographicTransform(Xw, Xc)
             #print(Homography[0])
             transformed_image = getTransfomredImage(np.linalg.inv(Homography[0]), gray, 200)
+            get_undistort(transformed_image)
             cv2.drawContours(frame, contours, -1, (0, 255, 0), 3)
             cv2.imshow('transformed_image', transformed_image)
             cv2.imshow('Lane Detection', cropped_image)
