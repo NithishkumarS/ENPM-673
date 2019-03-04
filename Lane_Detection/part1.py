@@ -31,7 +31,7 @@ def main():
     print(getVideoFile(int(usr_input)))
     cap = cv2.VideoCapture(getVideoFile(int(usr_input)))
     font = cv2.FONT_HERSHEY_SIMPLEX
-    Xc = np.array([[49, 0], [149, 0], [149, 199], [149, 199]])
+    Xc = np.array([[49, 0], [149, 0], [149, 199], [49, 199]])
     Xw = np.array([[548, 518], [761, 522], [891, 616], [408, 616]])
     while(cap.isOpened()):
         ret, frame = cap.read()
@@ -45,10 +45,11 @@ def main():
             ret, thresh = cv2.threshold(cropped_image, 150, 255, 0, cv2.THRESH_BINARY)
             contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
             Homography = homographicTransform(Xw, Xc)
-            transformed_image = getTransfomredImage(np.linalg.inv(H), gray, 200)
+            #print(Homography[0])
+            transformed_image = getTransfomredImage(np.linalg.inv(Homography[0]), gray, 200)
             cv2.drawContours(frame, contours, -1, (0, 255, 0), 3)
             cv2.imshow('transformed_image', transformed_image)
-            cv2.imshow('Lane Detection', frame)
+            cv2.imshow('Lane Detection', cropped_image)
             if cv2.waitKey(0) & 0xFF == ord('q'):
                 break
         else:
