@@ -44,7 +44,10 @@ def main():
             cropped_image = gray
             cropped_image[0:int(image_shape[0]*2/3),:] = 1
             ret, thresh = cv2.threshold(cropped_image, 150, 255, 0, cv2.THRESH_BINARY)
-            _,contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+            try:
+                _,contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+            except:
+                contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
             Homography = homographicTransform(Xw, Xc)
             #print(Homography[0])
             transformed_image = getTransfomredImage(np.linalg.inv(Homography[0]), gray, 200)
