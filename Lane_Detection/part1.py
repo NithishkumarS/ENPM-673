@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-__author__ = "Nantha Kumar Sunder, Nithish Kumar, Rama Prashanth"
+__author__ = "Nantha Kumar Sunder, Nithish Kumar"
 __version__ = "0.1.0"
 __license__ = "MIT"
 
