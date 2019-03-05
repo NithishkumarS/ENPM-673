@@ -16,5 +16,8 @@ def getTransfomredImage(h_inv, gray, n):
             Xw = np.matmul(h_inv, Xc)
             Xw = (Xw/Xw[2])
             Xw = Xw.astype(int)
-            transformed_image[row][col] = gray[Xw[1]][Xw[0]]
+            try:
+                transformed_image[row][col] = gray[Xw[1]][Xw[0]]
+            except:
+                pass
     return transformed_image

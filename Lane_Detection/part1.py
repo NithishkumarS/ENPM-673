@@ -32,7 +32,7 @@ def main():
     print(getVideoFile(int(usr_input)))
     cap = cv2.VideoCapture(getVideoFile(int(usr_input)))
     font = cv2.FONT_HERSHEY_SIMPLEX
-    Xc = np.array([[49, 0], [149, 0], [149, 199], [49, 199]])
+    Xc = np.array([[149, 0], [249, 0], [249, 399], [149, 399]])
     Xw = np.array([[548, 518], [761, 522], [891, 616], [408, 616]])
     while(cap.isOpened()):
         ret, frame = cap.read()
@@ -41,7 +41,7 @@ def main():
             gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
             gray = cv2.GaussianBlur(gray, (5, 5), 0)
             image_shape = gray.shape
-            cropped_image = gray
+            cropped_image = gray.copy()
             cropped_image[0:int(image_shape[0]*2/3),:] = 1
             ret, thresh = cv2.threshold(cropped_image, 150, 255, 0, cv2.THRESH_BINARY)
             try:
@@ -50,11 +50,13 @@ def main():
                 contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
             Homography = homographicTransform(Xw, Xc)
             #print(Homography[0])
-            transformed_image = getTransfomredImage(np.linalg.inv(Homography[0]), gray, 200)
+            transformed_image = getTransfomredImage(np.linalg.inv(Homography[0]), gray, 400)
             undistorted_img = get_undistort(transformed_image)
+            edges = cv2.Canny(undistorted_img,100,200)
             cv2.drawContours(frame, contours, -1, (0, 255, 0), 3)
             cv2.imshow('transformed_image', transformed_image)
-            cv2.imshow('Lane Detection', cropped_image)
+            cv2.imshow('Lane Detection', gray)
+
             if cv2.waitKey(0) & 0xFF == ord('q'):
                 break
         else:
