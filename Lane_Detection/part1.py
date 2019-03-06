@@ -18,6 +18,8 @@ import numpy as np
 from homography import homographicTransform
 from homography import getTransfomredImage
 from undistortion import get_undistort
+from colorSegmentation import colorSegmentation
+
 def getVideoFile(usr_input):
     switcher = {
         1: 'challenge_video.mp4',
@@ -38,32 +40,36 @@ def main():
         ret, frame = cap.read()
         if frame is not None:
             frame = np.array(frame, dtype=np.uint8)
+            segmented_image = colorSegmentation(frame)
             gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
             gray = cv2.GaussianBlur(gray, (5, 5), 0)
             image_shape = gray.shape
-            cropped_image = gray.copy()
+            cropped_image = segmented_image.copy()
             cropped_image[0:int(image_shape[0]*2/3),:] = 1
+
+            '''
             ret, thresh = cv2.threshold(cropped_image, 150, 255, 0, cv2.THRESH_BINARY)
             try:
                 _,contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
             except:
                 contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+            '''
+            '''
             Homography = homographicTransform(Xw, Xc)
-            #print(Homography[0])
             transformed_image = getTransfomredImage(np.linalg.inv(Homography[0]), gray, 400)
             undistorted_img = get_undistort(transformed_image)
-            edges = cv2.Canny(undistorted_img,100,200)
-            cv2.drawContours(frame, contours, -1, (0, 255, 0), 3)
-            cv2.imshow('transformed_image', transformed_image)
-            cv2.imshow('Lane Detection', gray)
+            '''
 
+            edges = cv2.Canny(cropped_image,100,200)
+            #cv2.drawContours(frame, contours, -1, (0, 255, 0), 3)
+            cv2.imshow('transformed_image', edges)
+            cv2.imshow('Lane Detection', frame)
             if cv2.waitKey(0) & 0xFF == ord('q'):
                 break
         else:
             break
     cap.release()
     cv2.destroyAllWindows()
-
 
 if __name__ == "__main__":
     """ This is executed when run from the command line """
