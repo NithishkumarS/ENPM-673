@@ -19,7 +19,7 @@ from homography import homographicTransform
 from homography import getTransfomredImage
 from undistortion import get_undistort
 from colorSegmentation import colorSegmentation
-
+from houghTransform import houghTransform
 def getVideoFile(usr_input):
     switcher = {
         1: 'challenge_video.mp4',
@@ -35,7 +35,9 @@ def main():
     cap = cv2.VideoCapture(getVideoFile(int(usr_input)))
     font = cv2.FONT_HERSHEY_SIMPLEX
     Xc = np.array([[149, 0], [249, 0], [249, 399], [149, 399]])
-    #Xw = np.array([[548, 518], [761, 522], [891, 616], [408, 616]])
+    Xw = np.array([[548, 518], [761, 522], [891, 616], [408, 616]])
+    kernel = np.ones((4,4),np.uint8)
+
     Xw = np.array([[600, 452], [683, 452], [1005, 630], [387, 630]])
     while(cap.isOpened()):
         ret, frame = cap.read()
@@ -44,7 +46,11 @@ def main():
             gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
             gray = cv2.GaussianBlur(gray, (5, 5), 0)
             image_shape = gray.shape
+<<<<<<< HEAD
+           
+=======
 
+>>>>>>> 0b3db4a8be8d15180546a20c23d185a8bee29996
             '''
             ret, thresh = cv2.threshold(cropped_image, 150, 255, 0, cv2.THRESH_BINARY)
             try:
@@ -52,6 +58,20 @@ def main():
             except:
                 contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
             '''
+            undistorted_img = get_undistort(transformed_image)
+            
+            cropped_image = segmented_image.copy()
+            cropped_image[0:int(image_shape[0]*2/3),:] = 1
+            erosion = cv2.erode(segmented_image,kernel,iterations = 1)
+            
+            Homography = homographicTransform(Xw, Xc)
+            transformed_image = getTransfomredImage(np.linalg.inv(Homography[0]), gray, 400)
+            
+            houghTransform(erosion, frame)    
+            edges = cv2.Canny(cropped_image,100,200)
+            #cv2.drawContours(frame, contours, -1, (0, 255, 0), 3)
+            cv2.imshow('transformed_image', erosion)
+=======
 
             undistorted_img = get_undistort(frame)
             segmented_image = colorSegmentation(undistorted_img)
@@ -67,6 +87,7 @@ def main():
             cv2.imshow('transformed_image', transformed_image)
             plt.plot(hist)
             plt.show()
+>>>>>>> 0b3db4a8be8d15180546a20c23d185a8bee29996
             cv2.imshow('Lane Detection', frame)
             if cv2.waitKey(0) & 0xFF == ord('q'):
                 break
