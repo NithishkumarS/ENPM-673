@@ -61,7 +61,7 @@ def main():
 
             Homography = homographicTransform(Xw, Xc)
             transformed_image = getTransfomredImage(np.linalg.inv(Homography[0]), segmented_image, 400,400)
-            hist = cv2.calcHist([transformed_image],[0],None,[256],[0,256])
+            hist = cv2.calcHist([transformed_image],[0],None,[2],[0,2])
             edges = cv2.Canny(cropped_image,100,200)
             #cv2.drawContours(frame, contours, -1, (0, 255, 0), 3)
             cv2.imshow('transformed_image', transformed_image)
