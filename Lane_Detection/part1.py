@@ -46,11 +46,6 @@ def main():
             gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
             gray = cv2.GaussianBlur(gray, (5, 5), 0)
             image_shape = gray.shape
-<<<<<<< HEAD
-           
-=======
-
->>>>>>> 0b3db4a8be8d15180546a20c23d185a8bee29996
             '''
             ret, thresh = cv2.threshold(cropped_image, 150, 255, 0, cv2.THRESH_BINARY)
             try:
@@ -58,27 +53,14 @@ def main():
             except:
                 contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
             '''
-            undistorted_img = get_undistort(transformed_image)
-            
-            cropped_image = segmented_image.copy()
-            cropped_image[0:int(image_shape[0]*2/3),:] = 1
-            erosion = cv2.erode(segmented_image,kernel,iterations = 1)
-            
-            Homography = homographicTransform(Xw, Xc)
-            transformed_image = getTransfomredImage(np.linalg.inv(Homography[0]), gray, 400)
-            
-            houghTransform(erosion, frame)    
-            edges = cv2.Canny(cropped_image,100,200)
-            #cv2.drawContours(frame, contours, -1, (0, 255, 0), 3)
-            cv2.imshow('transformed_image', erosion)
-=======
 
             undistorted_img = get_undistort(frame)
             segmented_image = colorSegmentation(undistorted_img)
 
             cropped_image = segmented_image.copy()
             cropped_image[0:int(image_shape[0]*1/2),:] = 1
-
+            erosion = cv2.erode(segmented_image,kernel,iterations = 1)
+            houghTransform(erosion, frame)
             Homography = homographicTransform(Xw, Xc)
             transformed_image = getTransfomredImage(np.linalg.inv(Homography[0]), segmented_image, 400,400)
             hist = cv2.calcHist([transformed_image],[0],None,[2],[0,2])
@@ -87,7 +69,6 @@ def main():
             cv2.imshow('transformed_image', transformed_image)
             plt.plot(hist)
             plt.show()
->>>>>>> 0b3db4a8be8d15180546a20c23d185a8bee29996
             cv2.imshow('Lane Detection', frame)
             if cv2.waitKey(0) & 0xFF == ord('q'):
                 break
