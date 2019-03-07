@@ -19,7 +19,7 @@ from homography import homographicTransform
 from homography import getTransfomredImage
 from undistortion import get_undistort
 from colorSegmentation import colorSegmentation
-
+from houghTransform import houghTransform
 def getVideoFile(usr_input):
     switcher = {
         1: 'challenge_video.mp4',
@@ -36,6 +36,8 @@ def main():
     font = cv2.FONT_HERSHEY_SIMPLEX
     Xc = np.array([[149, 0], [249, 0], [249, 399], [149, 399]])
     Xw = np.array([[548, 518], [761, 522], [891, 616], [408, 616]])
+    kernel = np.ones((4,4),np.uint8)
+
     while(cap.isOpened()):
         ret, frame = cap.read()
         if frame is not None:
@@ -46,7 +48,7 @@ def main():
             image_shape = gray.shape
             cropped_image = segmented_image.copy()
             cropped_image[0:int(image_shape[0]*2/3),:] = 1
-
+            erosion = cv2.erode(segmented_image,kernel,iterations = 1)
             '''
             ret, thresh = cv2.threshold(cropped_image, 150, 255, 0, cv2.THRESH_BINARY)
             try:
@@ -59,12 +61,12 @@ def main():
             transformed_image = getTransfomredImage(np.linalg.inv(Homography[0]), gray, 400)
             undistorted_img = get_undistort(transformed_image)
             '''
-
+            houghTransform(erosion, frame)    
             edges = cv2.Canny(cropped_image,100,200)
             #cv2.drawContours(frame, contours, -1, (0, 255, 0), 3)
-            cv2.imshow('transformed_image', edges)
+            cv2.imshow('transformed_image', erosion)
             cv2.imshow('Lane Detection', frame)
-            if cv2.waitKey(0) & 0xFF == ord('q'):
+            if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
         else:
             break
