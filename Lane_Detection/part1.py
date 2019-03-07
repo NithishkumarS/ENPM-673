@@ -47,23 +47,25 @@ def main():
             gray = cv2.GaussianBlur(gray, (5, 5), 0)
             image_shape = gray.shape
 <<<<<<< HEAD
-            cropped_image = segmented_image.copy()
-            cropped_image[0:int(image_shape[0]*2/3),:] = 1
-            erosion = cv2.erode(segmented_image,kernel,iterations = 1)
+           
 =======
 
 >>>>>>> 0b3db4a8be8d15180546a20c23d185a8bee29996
-            
+            '''
             ret, thresh = cv2.threshold(cropped_image, 150, 255, 0, cv2.THRESH_BINARY)
             try:
                 _,contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
             except:
                 contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-        
+            '''
+            undistorted_img = get_undistort(transformed_image)
+            
+            cropped_image = segmented_image.copy()
+            cropped_image[0:int(image_shape[0]*2/3),:] = 1
+            erosion = cv2.erode(segmented_image,kernel,iterations = 1)
             
             Homography = homographicTransform(Xw, Xc)
             transformed_image = getTransfomredImage(np.linalg.inv(Homography[0]), gray, 400)
-            undistorted_img = get_undistort(transformed_image)
             
             houghTransform(erosion, frame)    
             edges = cv2.Canny(cropped_image,100,200)
@@ -87,7 +89,7 @@ def main():
             plt.show()
 >>>>>>> 0b3db4a8be8d15180546a20c23d185a8bee29996
             cv2.imshow('Lane Detection', frame)
-            if cv2.waitKey(1) & 0xFF == ord('q'):
+            if cv2.waitKey(0) & 0xFF == ord('q'):
                 break
         else:
             break
