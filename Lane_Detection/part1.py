@@ -20,7 +20,7 @@ from homography import getTransfomredImage
 from undistortion import get_undistort
 from colorSegmentation import colorSegmentation
 from houghTransform import houghTransform
-from polyfit import polyfit
+from polyfit import slidingWindowFit
 def getVideoFile(usr_input):
     switcher = {
         1: 'challenge_video.mp4',
@@ -68,12 +68,12 @@ def main():
             hist = np.sum(transformed_image, axis=0)
             edges = cv2.Canny(cropped_image,100,200)
             #cv2.drawContours(frame, contours, -1, (0, 255, 0), 3)
-            cv2.imshow('transformed_image', transformed_image)
+            # cv2.imshow('transformed_image', transformed_image)
             left_lane_hist = np.argmax(hist[0:int(len(hist)/2)])
             right_lane_hist = np.argmax(hist[int(len(hist)/2):-1]) + int(len(hist)/2) - 1
-            image = polyfit(transformed_image, left_lane_hist, right_lane_hist)
+            image = slidingWindowFit(transformed_image, left_lane_hist, right_lane_hist)
             cv2.imshow('Lane Detection', frame)
-            if cv2.waitKey(0) & 0xFF == ord('q'):
+            if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
         else:
             break
