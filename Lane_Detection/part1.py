@@ -20,6 +20,7 @@ from homography import getTransfomredImage
 from undistortion import get_undistort
 from colorSegmentation import colorSegmentation
 from houghTransform import houghTransform
+from polyfit import polyfit
 def getVideoFile(usr_input):
     switcher = {
         1: 'challenge_video.mp4',
@@ -59,16 +60,18 @@ def main():
 
             cropped_image = segmented_image.copy()
             cropped_image[0:int(image_shape[0]*1/2),:] = 1
-            erosion = cv2.erode(segmented_image,kernel,iterations = 1)
-            houghTransform(erosion, frame)
+            # erosion = cv2.erode(segmented_image,kernel,iterations = 1)
+            # houghTransform(erosion, frame)
             Homography = homographicTransform(Xw, Xc)
             transformed_image = getTransfomredImage(np.linalg.inv(Homography[0]), segmented_image, 400,400)
-            hist = cv2.calcHist([transformed_image],[0],None,[2],[0,2])
+            # hist = cv2.calcHist([transformed_image],[0],None,[2],[0,2])
+            hist = np.sum(transformed_image, axis=0)
             edges = cv2.Canny(cropped_image,100,200)
             #cv2.drawContours(frame, contours, -1, (0, 255, 0), 3)
             cv2.imshow('transformed_image', transformed_image)
-            plt.plot(hist)
-            plt.show()
+            left_lane_hist = np.argmax(hist[0:int(len(hist)/2)])
+            right_lane_hist = np.argmax(hist[int(len(hist)/2):-1]) + int(len(hist)/2) - 1
+            image = polyfit(transformed_image, left_lane_hist, right_lane_hist)
             cv2.imshow('Lane Detection', frame)
             if cv2.waitKey(0) & 0xFF == ord('q'):
                 break
