@@ -33,7 +33,8 @@ def houghTransform(binaryImage, frame):
                     d =int(round( j*(math.cos(theta*math.pi/180)) + i*(math.sin(theta*math.pi/180)) ))
                     #print(d,theta)
                     lut[d,theta] +=1
-    cv2.imshow('lut',lut)
+                    
+    cv2.imshow('lut',lut.T)
     status = 0
     d_thresold = 0
     th_thresold = 0
