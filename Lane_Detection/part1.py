@@ -21,6 +21,7 @@ from undistortion import get_undistort
 from colorSegmentation import colorSegmentation
 from houghTransform import houghTransform
 from polyfit import slidingWindowFit
+
 def getVideoFile(usr_input):
     switcher = {
         1: 'challenge_video.mp4',
@@ -30,6 +31,7 @@ def getVideoFile(usr_input):
 
 def main():
     """ Main entry point of the app """
+    print('in')
     usr_input = input(
         'Select the Video\n\t1. challenge_video.mp4 \n\t2. project_video.mp4 \n\nYour Choice: ')
     print(getVideoFile(int(usr_input)))
