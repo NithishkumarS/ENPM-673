@@ -86,8 +86,8 @@ def main():
             left_lane_hist = np.argmax(hist[0:int(len(hist)/2)])
             right_lane_hist = np.argmax(hist[int(len(hist)/2):-1]) + int(len(hist)/2) - 1
            # image, y_points, x_points = slidingWindowFit(transformed_image, left_lane_hist, right_lane_hist)
-            lefty,leftx, righty, rightx = least_squares(transformed_image, left_lane_hist, right_lane_hist)
-            frame = superImpose(leftx, lefty,rightx, righty,Homography[0], frame)
+            lefty,leftx, righty, rightx, L_coef, R_coef = least_squares(transformed_image, left_lane_hist, right_lane_hist)
+            frame = superImpose( L_coef, R_coef,Homography[0], frame)
             cv2.imshow('Lane Detection', frame)
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
