@@ -21,6 +21,7 @@ from undistortion import get_undistort
 from colorSegmentation import colorSegmentation
 from houghTransform import houghTransform
 from polyfit import slidingWindowFit
+from homography import superImpose
 
 def getVideoFile(usr_input):
     switcher = {
@@ -73,9 +74,10 @@ def main():
             # cv2.imshow('transformed_image', transformed_image)
             left_lane_hist = np.argmax(hist[0:int(len(hist)/2)])
             right_lane_hist = np.argmax(hist[int(len(hist)/2):-1]) + int(len(hist)/2) - 1
-            image = slidingWindowFit(transformed_image, left_lane_hist, right_lane_hist)
+            image, y_points, x_points = slidingWindowFit(transformed_image, left_lane_hist, right_lane_hist)
+            frame = superImpose(x_points, y_points,Homography[0], frame)
             cv2.imshow('Lane Detection', frame)
-            if cv2.waitKey(1) & 0xFF == ord('q'):
+            if cv2.waitKey(0) & 0xFF == ord('q'):
                 break
         else:
             break
