@@ -38,11 +38,13 @@ def main():
     print(getVideoFile(int(usr_input)))
     cap = cv2.VideoCapture(getVideoFile(int(usr_input)))
     font = cv2.FONT_HERSHEY_SIMPLEX
-    Xc = np.array([[149, 0], [249, 0], [249, 399], [149, 399]])
-    Xw = np.array([[548, 518], [761, 522], [891, 616], [408, 616]])
-    kernel = np.ones((4,4),np.uint8)
+    Xc = np.array([[200, 100], [1000, 100], [1000,620], [200,620]])
+    Xw = np.array([[565, 471], [707, 471], [958, 618], [385, 618]])
+    #Xc = np.array([[149, 0], [249, 0], [249, 399], [149, 399]])
+    #Xw = np.array([[548, 518], [761, 522], [891, 616], [408, 616]])
+#    kernel = np.ones((4,4),np.uint8)
 
-    Xw = np.array([[600, 452], [683, 452], [1005, 630], [387, 630]])
+   # Xw = np.array([[600, 452], [683, 452], [1005, 630], [387, 630]])
     while(cap.isOpened()):
         ret, frame = cap.read()
         if frame is not None:
@@ -66,16 +68,16 @@ def main():
             # erosion = cv2.erode(segmented_image,kernel,iterations = 1)
             # houghTransform(erosion, frame)
             Homography = homographicTransform(Xw, Xc)
-            transformed_image = getTransfomredImage(np.linalg.inv(Homography[0]), segmented_image, 400,400)
+            transformed_image = getTransfomredImage(np.linalg.inv(Homography[0]), segmented_image, frame.shape[1],frame.shape[0])
             # hist = cv2.calcHist([transformed_image],[0],None,[2],[0,2])
             hist = np.sum(transformed_image, axis=0)
             edges = cv2.Canny(cropped_image,100,200)
             #cv2.drawContours(frame, contours, -1, (0, 255, 0), 3)
-            # cv2.imshow('transformed_image', transformed_image)
+            cv2.imshow('transformed_image', transformed_image)
             left_lane_hist = np.argmax(hist[0:int(len(hist)/2)])
             right_lane_hist = np.argmax(hist[int(len(hist)/2):-1]) + int(len(hist)/2) - 1
            # image, y_points, x_points = slidingWindowFit(transformed_image, left_lane_hist, right_lane_hist)
-            x_points,y_points = least_squares(transformed_image, left_lane_hist, right_lane_hist)
+            y_points,x_points = least_squares(transformed_image, left_lane_hist, right_lane_hist)
             frame = superImpose(x_points, y_points,Homography[0], frame)
             cv2.imshow('Lane Detection', frame)
             if cv2.waitKey(0) & 0xFF == ord('q'):

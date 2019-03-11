@@ -18,7 +18,8 @@ def least_squares(image, left_lane_hist, right_lane_hist):
     left = [[0,0]]
     
     for i in range(left_lane_hist-30,left_lane_hist+30):
-        for j in range(0,image.shape[1]):
+        for j in range(0,image.shape[0]-1):
+            
             if binaryImage[j,i] == 255:
                 left = np.concatenate((left,[[i, j]]), axis=0)
                 x_sum = x_sum + i
@@ -48,10 +49,10 @@ def least_squares(image, left_lane_hist, right_lane_hist):
     print(coeff[1,0])
     print(coeff[2,0])
     '''
-    xp = np.linspace(0,399, 400)
+    xp = np.linspace(0,1279, 1280)
     z = y(xp)
-    x = np.zeros(400)
-    for k in range(0,399):
+    x = np.zeros(1280)
+    for k in range(0,720):
      #   cur = coeff[1,0]*coeff[1,0] - 4*coeff[0,0]*(coeff[2,0] - k)
       #  print('check', cur)
         
@@ -63,5 +64,5 @@ def least_squares(image, left_lane_hist, right_lane_hist):
       #  colorImage[int(y[k]),k] = (255,0,0)
     
     cv2.imshow('fit', colorImage2)
-    return x,z
+    return xp,z
 #    cv2.imshow('polyfit', colorImage)
