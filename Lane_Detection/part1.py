@@ -38,8 +38,17 @@ def main():
     print(getVideoFile(int(usr_input)))
     cap = cv2.VideoCapture(getVideoFile(int(usr_input)))
     font = cv2.FONT_HERSHEY_SIMPLEX
-    Xc = np.array([[200, 100], [1000, 100], [1000,620], [200,620]])
-    Xw = np.array([[565, 471], [707, 471], [958, 618], [385, 618]])
+    Xc = np.array(
+        [[900, 0],
+          [900, 710],
+          [250, 710],
+          [250, 0]])
+    #([[200, 150], [1000, 150], [1000,600], [200,600]])
+    Xw = np.array(
+        [[685, 450],
+          [1090, 710],
+          [220, 710],
+          [595, 450]])#([[565, 471], [707, 471], [958, 618], [385, 618]])
     #Xc = np.array([[149, 0], [249, 0], [249, 399], [149, 399]])
     #Xw = np.array([[548, 518], [761, 522], [891, 616], [408, 616]])
 #    kernel = np.ones((4,4),np.uint8)
@@ -73,14 +82,14 @@ def main():
             hist = np.sum(transformed_image, axis=0)
             edges = cv2.Canny(cropped_image,100,200)
             #cv2.drawContours(frame, contours, -1, (0, 255, 0), 3)
-            cv2.imshow('transformed_image', transformed_image)
+            #cv2.imshow('transformed_image', transformed_image)
             left_lane_hist = np.argmax(hist[0:int(len(hist)/2)])
             right_lane_hist = np.argmax(hist[int(len(hist)/2):-1]) + int(len(hist)/2) - 1
            # image, y_points, x_points = slidingWindowFit(transformed_image, left_lane_hist, right_lane_hist)
-            y_points,x_points = least_squares(transformed_image, left_lane_hist, right_lane_hist)
-            frame = superImpose(x_points, y_points,Homography[0], frame)
+            lefty,leftx, righty, rightx = least_squares(transformed_image, left_lane_hist, right_lane_hist)
+            frame = superImpose(leftx, lefty,rightx, righty,Homography[0], frame)
             cv2.imshow('Lane Detection', frame)
-            if cv2.waitKey(0) & 0xFF == ord('q'):
+            if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
         else:
             break

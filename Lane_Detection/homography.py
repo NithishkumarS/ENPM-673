@@ -26,16 +26,22 @@ def getTransfomredImage(h_inv, gray, n_row, n_col):
     '''
     return im_out
 
-def superImpose(x_points, y_points, h, frame):
+def superImpose(leftx, lefty, rightx, righty, h, frame):
     h_inv = np.linalg.inv(h)
-    for i in range(0, 719):
-        Xc = np.array([x_points[i], y_points[i], 1]).T
+    for i in range(0, frame.shape[0]-1):
+        Xc = np.array([leftx[i], lefty[i], 1]).T
+        RXc = np.array([rightx[i], righty[i], 1]).T
         Xw = np.matmul(h_inv, Xc)
         Xw = (Xw/Xw[2])
-        Xw = np.round(Xw)
-        Xw = Xw.astype(int)
+        Xw = np.round(Xw.astype(int))
+       
+        RXw = np.matmul(h_inv, RXc)
+        RXw = (RXw/RXw[2])
+        RXw = np.round(RXw.astype(int))
+
         try:
-            frame[Xw[1],Xw[0]-10:Xw[0]+10] = [0,0,255]
+            frame[Xw[1],Xw[0]] = [0,0,255]
+            frame[RXw[1],RXw[0]] = [0,0,255]
         except:
             pass
     return frame
