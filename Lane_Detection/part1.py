@@ -23,6 +23,8 @@ from houghTransform import houghTransform
 from polyfit import slidingWindowFit
 from homography import superImpose
 from leastSquares import least_squares
+from turnDetection import detect_turn
+
 def getVideoFile(usr_input):
     switcher = {
         1: 'challenge_video.mp4',
@@ -52,7 +54,7 @@ def main():
     #Xc = np.array([[149, 0], [249, 0], [249, 399], [149, 399]])
     #Xw = np.array([[548, 518], [761, 522], [891, 616], [408, 616]])
 #    kernel = np.ones((4,4),np.uint8)
-
+    font = cv2.FONT_HERSHEY_SIMPLEX
    # Xw = np.array([[600, 452], [683, 452], [1005, 630], [387, 630]])
     while(cap.isOpened()):
         ret, frame = cap.read()
@@ -86,11 +88,11 @@ def main():
             #cv2.imshow('transformed_image', transformed_image)
             left_lane_hist = np.argmax(hist[0:int(len(hist)/2)])
             right_lane_hist = np.argmax(hist[int(len(hist)/2):-1]) + int(len(hist)/2) - 1
-            print(left_lane_hist)
-            print(right_lane_hist)
            # image, y_points, x_points = slidingWindowFit(transformed_image, left_lane_hist, right_lane_hist)
             lefty,leftx, righty, rightx, L_coef, R_coef = least_squares(transformed_image, left_lane_hist, right_lane_hist)
             frame = superImpose( L_coef, R_coef,Homography[0], undistorted_img)
+            turn = detect_turn(lefty, leftx, righty, rightx, L_coef, R_coef, image_shape)
+            cv2.putText(frame,'Turn: ' +  turn ,(10,100), font, 2, (200,255,155), 2, cv2.LINE_AA)
             cv2.imshow('Lane edges', transformed_image)
             cv2.imshow('Lane Detection', frame)
             if cv2.waitKey(0) & 0xFF == ord('q'):
