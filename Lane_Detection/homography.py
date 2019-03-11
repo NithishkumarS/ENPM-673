@@ -28,23 +28,17 @@ def getTransfomredImage(h_inv, gray, n_row, n_col):
 
 def superImpose( L_coef, R_coef, h, frame):
     h_inv = np.linalg.inv(h)
-    color_warp = np.zeros_like(frame)
-    new_img = np.copy(frame)
+    temp = np.zeros_like(frame)
+    frame_copy = np.copy(frame)
     if L_coef is None or R_coef is None:
         return frame
-    h = 720
-    w = 1280
-    ploty = np.linspace(0, h-1, num=h)
-    left_fitx = L_coef[0]*ploty**2 + (L_coef[1])*ploty + L_coef[2]
-    right_fitx = R_coef[0]*ploty**2 + R_coef[1]*ploty + R_coef[2] +50
-    diff = left_fitx[-1] - right_fitx[-1]
-    difft = left_fitx[0] - right_fitx[0]
-    print(L_coef)
-    print(R_coef)
-    pts_left = np.array([np.transpose(np.vstack([left_fitx, ploty]))])
-    pts_right = np.array([np.flipud(np.transpose(np.vstack([right_fitx, ploty])))])
-    pts = np.hstack((pts_left, pts_right))
-    cv2.fillPoly(color_warp, np.int_([pts]), (0,255, 0))
-    newwarp = cv2.warpPerspective(color_warp, h_inv, (w, h))
-    result = cv2.addWeighted(new_img, 1, np.roll(newwarp,-20,axis=1), 0.2, 0)
-    return result
+    y = np.linspace(0, 719, 720)
+    left_x = L_coef[0]*y**2 + L_coef[1]*y + L_coef[2]
+    right_x = R_coef[0]*y**2 + R_coef[1]*y + R_coef[2]
+    left = np.array([np.transpose(np.vstack([left_x, y]))])
+    right = np.array([np.flipud(np.transpose(np.vstack([right_x, y])))])
+    points = np.hstack((left, right))
+    cv2.fillPoly(temp, np.int_([points]), (0,255, 0))
+    warped_img = cv2.warpPerspective(temp, h_inv, (1280, 720))
+    frame = cv2.addWeighted(frame_copy, 1, warped_img, 0.2, 0)
+    return frame
