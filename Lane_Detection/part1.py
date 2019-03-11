@@ -23,6 +23,8 @@ from houghTransform import houghTransform
 from polyfit import slidingWindowFit
 from homography import superImpose
 from leastSquares import least_squares
+from turnDetection import detect_turn
+
 def getVideoFile(usr_input):
     switcher = {
         1: 'challenge_video.mp4',
@@ -88,6 +90,8 @@ def main():
            # image, y_points, x_points = slidingWindowFit(transformed_image, left_lane_hist, right_lane_hist)
             lefty,leftx, righty, rightx, L_coef, R_coef = least_squares(transformed_image, left_lane_hist, right_lane_hist)
             frame = superImpose( L_coef, R_coef,Homography[0], frame)
+            turn = detect_turn(lefty,leftx, righty, rightx, L_coef, R_coef, image_shape)
+            cv2.putText(frame, turn, (30,70), 0, 1, (255,255,0), 2, cv2.FONT_HERSHEY_SIMPLEX)
             cv2.imshow('Lane Detection', frame)
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
