@@ -55,6 +55,8 @@ def main():
     #Xw = np.array([[548, 518], [761, 522], [891, 616], [408, 616]])
 #    kernel = np.ones((4,4),np.uint8)
     font = cv2.FONT_HERSHEY_SIMPLEX
+    L_coef = np.zeros((3,1))
+    R_coef = np.zeros((3,1))
    # Xw = np.array([[600, 452], [683, 452], [1005, 630], [387, 630]])
     while(cap.isOpened()):
         ret, frame = cap.read()
@@ -89,13 +91,13 @@ def main():
             left_lane_hist = np.argmax(hist[0:int(len(hist)/2)])
             right_lane_hist = np.argmax(hist[int(len(hist)/2):-1]) + int(len(hist)/2) - 1
            # image, y_points, x_points = slidingWindowFit(transformed_image, left_lane_hist, right_lane_hist)
-            lefty,leftx, righty, rightx, L_coef, R_coef = least_squares(transformed_image, left_lane_hist, right_lane_hist)
+            lefty,leftx, righty, rightx, L_coef, R_coef = least_squares(transformed_image, left_lane_hist, right_lane_hist,L_coef, R_coef)
             frame = superImpose( L_coef, R_coef,Homography[0], undistorted_img)
             turn = detect_turn(lefty, leftx, righty, rightx, L_coef, R_coef, image_shape)
             cv2.putText(frame,'Turn: ' +  turn ,(10,100), font, 2, (200,255,155), 2, cv2.LINE_AA)
-            cv2.imshow('Lane edges', transformed_image)
+            cv2.imshow('Lane edges', segmented_image)
             cv2.imshow('Lane Detection', frame)
-            if cv2.waitKey(0) & 0xFF == ord('q'):
+            if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
         else:
             break
