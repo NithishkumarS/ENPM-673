@@ -5,7 +5,7 @@ import cv2
 import matplotlib.pyplot as plt
 
 
-def detect_turn(lefty, leftx, righty, rightx, L_coef, R_coef, image_shape):
+def detect_turn(L_coef, R_coef, image_shape, l_coef_arr, r_coef_arr):
 # =============================================================================
 #     # Dimensions along x & y in pixels
 #     xmpix = 30/720  #30 meters is equivalent to 720 pixels in the vertical direction
@@ -21,8 +21,8 @@ def detect_turn(lefty, leftx, righty, rightx, L_coef, R_coef, image_shape):
 #     print('Left Curvature ', lcurv)
 #     print('Right Curvature ', rcurv)
 #     print('Curvature ', curv)
-#     
-#     
+#
+#
 #     # Calculate vehicle center offset in pixels
 #     left_fit = np.polyfit(lefty, leftx, 2)
 #     right_fit = np.polyfit(righty, rightx, 2)
@@ -32,18 +32,29 @@ def detect_turn(lefty, leftx, righty, rightx, L_coef, R_coef, image_shape):
 #     bottom_x_right = right_fit[0]*(bottom_y**2) + right_fit[1]*bottom_y + right_fit[2]
 #     xmean = (bottom_x_left + bottom_x_right) / 2
 #     # +ve offset --> right | -ve offset --> left
-#     offset = (image_shape[1]/2 - xmean) * xmpix 
+#     offset = (image_shape[1]/2 - xmean) * xmpix
 #     print('Offset ',offset)
 #     print('L Coef', L_coef)
 #     print('R Coef', R_coef)
 # =============================================================================
 
-    turn = 'Heading Straight'
-    if (L_coef[0] < -0.0001) and (R_coef[0] < -0.0001):
-        print('Turning Left')
-        turn = 'Turning Left'
-    elif (L_coef[0] > 0.0001) and (R_coef[0] > 0.0001):
-        print('Turning Right')
-        turn = 'Turning Right'
-    return turn
-    
+    l_coef_arr.append([L_coef[0]])
+    r_coef_arr.append([R_coef[0]])
+    if (len(l_coef_arr) >= 7):
+        l_coef_arr.pop(0)
+        r_coef_arr.pop(0)
+
+    l_mean_coeff = np.mean(l_coef_arr)
+    r_mean_coeff = np.mean(r_coef_arr)
+
+    print('Left Mean Coeff', l_mean_coeff)
+    print('Right Mean Coeff', r_mean_coeff)
+    turn = 'Straight'
+    if (l_mean_coeff < -0.00009) and (r_mean_coeff < -0.00009):
+        print('Turn Left')
+        turn = 'Turn Left'
+    elif (l_mean_coeff > 0.00009) and (r_mean_coeff > 0.00009):
+        print('Turn Right')
+        turn = 'Turn Right'
+
+    return turn, l_coef_arr, r_coef_arr
