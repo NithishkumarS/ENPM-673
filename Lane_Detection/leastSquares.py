@@ -2,9 +2,14 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 import math
+from werkzeug.formparser import _end
 def least_squares(image, left_lane_hist, right_lane_hist,L_coef, R_coef):
+    
+    prev_L = [0,0,0]
     prev_L = L_coef
+    prev_R = [0,0,0]
     prev_R = R_coef
+    
     thresh = 130
     binaryImage = cv2.threshold(image, thresh, 255, cv2.THRESH_BINARY)[1]
     colorImage = cv2.cvtColor(image,cv2.COLOR_GRAY2RGB)
@@ -38,15 +43,15 @@ def least_squares(image, left_lane_hist, right_lane_hist,L_coef, R_coef):
                 x4_sum = x4_sum + i*i*i*i
                 count = count +1
                 '''
-            if binaryImage[j,i+var] == 255:
-                right = np.concatenate((right,[[i+var, j]]), axis=0)
+    
+    for i in range(right_lane_hist-150,right_lane_hist+150):
+        for j in range(0,image.shape[0]-1):
+            if binaryImage[j,i] == 255:
+                right = np.concatenate((right,[[i, j]]), axis=0)
                 R_count = R_count + 1
-#     median_left= [0,0]
-#     median_right = [0,0]
+
     print('L_count:',L_count)
     print('R_count:',R_count)
-    
-    
     
     '''
     left = sorted(left, key=lambda left: left[1])
@@ -77,26 +82,41 @@ def least_squares(image, left_lane_hist, right_lane_hist,L_coef, R_coef):
     left = np.delete(left, (0,1), axis =0)
     right = np.delete(right, (0,1), axis =0)
 
-    print('left size:',left.shape)
-    print('right size:',right.shape)
-    if R_count > 80 :
+    if R_count > 200 :
+        print(1)
         R_coef = np.polyfit(right[:,1].T,right[:,0].T,2)
+        print R_coef
     else :
         R_coef = prev_R
    
     if L_count> 200:
+        print(2)
         L_coef = np.polyfit(left[:,1].T,left[:,0].T,2)
+        print L_coef
     else:
         L_coef = prev_L
-    
-    # print('right coeff:',R_coef)
-    # print('left coeff:',L_coef)
+        print(3)
+    print('Diff', L_coef-R_coef)
+    #    if np.absolute(L_coef[0]) > .006 or np.absolute(L_coef[1]) > 1 or np.absolute(L_coef[2]) <100 :
+    if np.absolute(R_coef[0] - L_coef[0]) > .01 or np.absolute(R_coef[1] - L_coef[1]) > 1.7 or np.absolute(R_coef[2] - L_coef[2]) > 800:
+        L_coef = prev_L
+        R_coef = prev_R
+        
+        
     #    d = np.sqrt(coef[0]*coef[0] + coef[1]*coef[1] + coef[2]*coef[2])
     #print('d',d)
     L_y = np.poly1d(L_coef)
     R_y = np.poly1d(R_coef)
-    colorImage2 = colorImage
+    L_end = L_y(719)
+    R_end = R_y(719)
+    print('L_end - R_end',L_end - R_end)
+    if np.absolute(L_end - R_end) < 480 and np.absolute(L_end - R_end) < 530:
+         L_coef = prev_L
+         R_coef = prev_R
     
+    L_y = np.poly1d(L_coef)
+    R_y = np.poly1d(R_coef)
+    colorImage2 = colorImage
     #coeff = np.matmul(np.linalg.inv(A), Y)
     
     xp = np.linspace(0,1279, 1280)
@@ -110,7 +130,7 @@ def least_squares(image, left_lane_hist, right_lane_hist,L_coef, R_coef):
        # temp = round(( -coeff[1,0] + math.sqrt(abs(coeff[1,0]*coeff[1,0] - 4*coeff[0,0]*(coeff[2,0] - k)) ))/ (2*coeff[0,0]))
        # x[k] = int(temp)
        try:
-     #      colorImage2[k,int(L_z[k])] = [0,0,255]
+           colorImage2[k,int(L_z[k])] = [0,0,255]
            colorImage2[k,int(R_z[k])] = [0,0,255]
        except:
            pass
@@ -119,6 +139,8 @@ def least_squares(image, left_lane_hist, right_lane_hist,L_coef, R_coef):
       #  colorImage[int(y[k]),k] = (255,0,0)
     
     cv2.imshow('fit', colorImage2)
+    print('L_coef:', L_coef)
+    print('R_coef:', R_coef)
     
     return xp,L_z,xp,R_z, L_coef, R_coef
    #    cv2.imshow('polyfit', colorImage)
