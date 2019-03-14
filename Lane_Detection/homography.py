@@ -32,7 +32,7 @@ def superImpose( L_coef, R_coef, h, frame):
     frame_copy = np.copy(frame)
     if L_coef is None or R_coef is None:
         return frame
-    y = np.linspace(0, 719, 720)
+    y = np.linspace(350, 719, 720)
     left_x = L_coef[0]*y**2 + L_coef[1]*y + L_coef[2]
     right_x = R_coef[0]*y**2 + R_coef[1]*y + R_coef[2]
     left = np.array([np.transpose(np.vstack([left_x, y]))])
