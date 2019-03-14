@@ -110,7 +110,7 @@ def least_squares(image, left_lane_hist, right_lane_hist,L_coef, R_coef):
     L_end = L_y(719)
     R_end = R_y(719)
     print('L_end - R_end',L_end - R_end)
-    if np.absolute(L_end - R_end) < 480 and np.absolute(L_end - R_end) < 530:
+    if np.absolute(L_end - R_end) < 480 and np.absolute(L_end - R_end) < 520 or L_end > 600:
          L_coef = prev_L
          R_coef = prev_R
     
