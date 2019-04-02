@@ -2,3 +2,6 @@ Input Sequences/
 .DS_Store
 __pychache__/
 *.pyc
+**/*.avi
+**/*.mp4
+**/*.mov
