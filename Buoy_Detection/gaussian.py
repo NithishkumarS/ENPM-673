@@ -3,7 +3,7 @@ import sys
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
-from math import sqrt, pi, exp
+from math import sqrt, pi, exp, erf
 from scipy.stats import norm
 import matplotlib.pyplot as plt
 
@@ -91,8 +91,9 @@ class Gaussian:
     def get_pdf(self, x, mean, variance):
         """
         Probability Density Function
-        # https://stackoverflow.com/questions/809362/how-to-calculate-cumulative-normal-distribution-in-python/809406
         """
+        u = (x-mean)/abs(variance)
+        y = (1/(sqrt(2*pi)*abs(variance)))*exp(-u*u/2)
         # var = float(variance)
         # denom = (2*pi*var)**0.5
         # num = exp(-(float(x)-float(mean))**2/(2*var))
@@ -100,8 +101,10 @@ class Gaussian:
 
         # TOO SLOW ---> Need to replace
         # https://stackoverflow.com/questions/809362/how-to-calculate-cumulative-normal-distribution-in-python
-        cdf = norm.cdf(x, mean, sqrt(variance))
-        return cdf
+        # cdf = norm.cdf(x, mean, sqrt(variance))
+        # return cdf
+
+        return y
 
     def get_thresholded_pdf(self, frame, p1, p2, p3):
         # q = np.multiply(np.multiply(np.multiply(frame, p1>thresh1), p2>thresh2), p3>thresh3)
@@ -114,7 +117,7 @@ class Gaussian:
         # q5 = (p3>0.008).astype(int)
         # q6 = (p3<0.0091).astype(int)
         # q = np.multiply(q1, np.multiply(q2, np.multiply(np.multiply(q3, np.multiply(q4, q5)), q6))).astype(np.uint8)
-        q = np.multiply(frame, p1 > 0.98)
+        q = np.multiply(frame, p1 > 0.00027706)
         return q
 
     def detect_buoys(self, frame):
@@ -129,6 +132,7 @@ class Gaussian:
         map_fn_g_b = lambda x:self.get_pdf(x, self.mean_g[0], self.variance_g[0])
         fn_g_b = np.vectorize(map_fn_g_b)
         pdf_g_b = fn_g_b(frame_b)
+
 
         map_fn_g_g = lambda x:self.get_pdf(x, self.mean_g[1], self.variance_g[1])
         fn_g_g = np.vectorize(map_fn_g_g)
@@ -180,14 +184,14 @@ class Gaussian:
         _frame_gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
         print('Noise')
-        print(pdf_r_r[302,205])
-        print(pdf_r_g[302,205])
-        print(pdf_r_b[302,205])
+        print(pdf_r_r[227,150])
+        print(pdf_r_g[227,150])
+        print(pdf_r_b[227,150])
 
         print('Buoy')
-        print(pdf_r_r[199,338])
-        print(pdf_r_g[199,338])
-        print(pdf_r_b[199,338])
+        print(pdf_r_r[195,342])
+        print(pdf_r_g[195,342])
+        print(pdf_r_b[195,342])
         _frame_g = self.get_thresholded_pdf(frame_r, pdf_r_r, pdf_r_g, pdf_r_b)
 
         # R 0.0105136
