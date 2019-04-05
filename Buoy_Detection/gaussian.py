@@ -3,7 +3,7 @@ import sys
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
-from math import sqrt, pi, exp, erf
+from math import sqrt, pi, exp, erfc
 from scipy.stats import norm
 import matplotlib.pyplot as plt
 
@@ -44,7 +44,7 @@ class Gaussian:
         # print(self.variance_g, self.variance_r, self.variance_y)
 
     def get_histogram(self, img, channel):
-        hist = cv2.calcHist([img[:,:,channel]], [0], None, [256], [0,256])
+        hist = cv2.calcHist([img], [channel], None, [256], [0,256])
         return hist
 
     def get_mean(self, hist):
@@ -92,8 +92,8 @@ class Gaussian:
         """
         Probability Density Function
         """
-        u = (x-mean)/abs(variance)
-        y = (1/(sqrt(2*pi)*abs(variance)))*exp(-u*u/2)
+        #u = (x-mean)/abs(variance)
+        #y = (1/(sqrt(2*pi)*abs(variance)))*exp(-u*u/2)
         # var = float(variance)
         # denom = (2*pi*var)**0.5
         # num = exp(-(float(x)-float(mean))**2/(2*var))
@@ -103,10 +103,14 @@ class Gaussian:
         # https://stackoverflow.com/questions/809362/how-to-calculate-cumulative-normal-distribution-in-python
         # cdf = norm.cdf(x, mean, sqrt(variance))
         # return cdf
-
+        t = x-mean;
+        y = 0.5*erfc(-t/(variance*sqrt(2.0)));
+        if y>1.0:
+            y = 1.0;
         return y
+        #return y
 
-    def get_thresholded_pdf(self, frame, p1, p2, p3):
+    def get_thresholded_pdf(self, frame, p1):
         # q = np.multiply(np.multiply(np.multiply(frame, p1>thresh1), p2>thresh2), p3>thresh3)
         # q1 = (p1>0.00804).astype(int)
         # q2 = (p1<0.0104).astype(int)
@@ -117,8 +121,30 @@ class Gaussian:
         # q5 = (p3>0.008).astype(int)
         # q6 = (p3<0.0091).astype(int)
         # q = np.multiply(q1, np.multiply(q2, np.multiply(np.multiply(q3, np.multiply(q4, q5)), q6))).astype(np.uint8)
-        q = np.multiply(frame, p1 > 0.00027706)
-        return q
+        # q = np.multiply(frame, p1)
+        frame[p1 == True] = 255
+        frame[p1 ==False] =0
+        return frame
+
+    def skel(self, img):
+        size = np.size(img)
+        skel = np.zeros(img.shape,np.uint8)
+
+        ret,img = cv2.threshold(img,127,255,0)
+        element = cv2.getStructuringElement(cv2.MORPH_CROSS,(3,3))
+        done = False
+
+        while( not done):
+            eroded = cv2.erode(img,element)
+            temp = cv2.dilate(eroded,element)
+            temp = cv2.subtract(img,temp)
+            skel = cv2.bitwise_or(skel,temp)
+            img = eroded.copy()
+
+            zeros = size - cv2.countNonZero(img)
+            if zeros==size:
+                done = True
+        return skel
 
     def detect_buoys(self, frame):
         frame_b = frame[:,:,0]
@@ -192,8 +218,20 @@ class Gaussian:
         print(pdf_r_r[195,342])
         print(pdf_r_g[195,342])
         print(pdf_r_b[195,342])
-        _frame_g = self.get_thresholded_pdf(frame_r, pdf_r_r, pdf_r_g, pdf_r_b)
-
+        print((pdf_r_r > 0.00027704).shape)
+        print(frame_r.shape)
+        #_frame_r = cv2.GaussianBlur(frame_r,(5,5),0)
+        _frame_r = self.get_thresholded_pdf(frame_r, pdf_r_r > .99*np.amax(pdf_r_r))
+        #_frame_r = cv2.GaussianBlur(_frame_r,(5,5),0)
+        opening = cv2.morphologyEx(img, cv2.MORPH_OPEN, kernel)
+        _frame_r = cv2.medianBlur(_frame_r,3)
+        kernel = np.ones((7,7),np.uint8)
+        _frame_r = cv2.erode(_frame_r,kernel,iterations = 1)
+        kernel = np.ones((9,9),np.uint8)
+        _frame_r = cv2.dilate(_frame_r,kernel,iterations = 1)
+        #temp = self.skel(_frame_r)
+        #kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (10,10))
+        #_frame_r = cv2.morphologyEx(temp, cv2.MORPH_CLOSE, kernel)
         # R 0.0105136
         # G 0.01210605
         # B 0.009138
@@ -204,5 +242,21 @@ class Gaussian:
         # _frame_r = self.get_thresholded_pdf(frame_r, pdf_g_r, 0.00029)
         # print(p)
         # print(np.array([_frame_b, _frame_g, _frame_r]))
+        '''
+        std_r_r = sqrt(self.variance_r[2])
+        x_r = np.linspace(0,255,256)
+        #x_r = np.linspace(self.mean_r[2] - 3*std_r_r,self.mean_r[2] + 3*std_r_r, 480)
+        #plt.plot(self.get_histogram(frame, 2),'r')
+        histr_r = self.get_histogram(frame, 2)
+        mr_r, vr_r = self.get_gaussian(histr_r)
+        pdf = np.vectorize(self.get_pdf)
+        pdfr_r = pdf(histr_r, mr_r, vr_r)
+        print(np.amax(pdfr_r))
+        plt.plot(x_r, pdfr_r,'r')
+        _frame_r = self.get_thresholded_pdf(frame_r,pdfr_r)
+        '''
+        #plt.plot(self.get_histogram(frame, 1),'g')
+        #plt.plot(self.get_histogram(frame, 0),'b')
+        #plt.show()
 
-        return _frame_g
+        return _frame_r
