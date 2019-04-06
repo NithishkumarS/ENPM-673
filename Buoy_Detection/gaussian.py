@@ -108,22 +108,10 @@ class Gaussian:
         if y>1.0:
             y = 1.0;
         return y
-        #return y
 
     def get_thresholded_pdf(self, frame, p1):
-        # q = np.multiply(np.multiply(np.multiply(frame, p1>thresh1), p2>thresh2), p3>thresh3)
-        # q1 = (p1>0.00804).astype(int)
-        # q2 = (p1<0.0104).astype(int)
-
-        # q3 = (p2>0.011).astype(int)
-        # q4 = (p2<0.012).astype(int)
-        #
-        # q5 = (p3>0.008).astype(int)
-        # q6 = (p3<0.0091).astype(int)
-        # q = np.multiply(q1, np.multiply(q2, np.multiply(np.multiply(q3, np.multiply(q4, q5)), q6))).astype(np.uint8)
-        # q = np.multiply(frame, p1)
         frame[p1 == True] = 255
-        frame[p1 ==False] =0
+        frame[p1 == False] = 0
         return frame
 
     def skel(self, img):
@@ -146,10 +134,29 @@ class Gaussian:
                 done = True
         return skel
 
+    def draw_buoy_contour(self, original_frame, reference_frame, color):
+        contours, hier = cv2.findContours(reference_frame.copy(), 1, 2)
+        radius_r = []
+        for c in contours:
+            point,radius = cv2.minEnclosingCircle(c)
+            radius_r.append(int(radius))
+
+        max_r = np.argmax(radius_r)
+        cnt = contours[max_r]
+        moments = [cv2.moments(cnt)]
+
+        centroids = [(int(M['m10'] / M['m00']), int(M['m01'] / M['m00'])) for M in moments]
+        for c in centroids:
+            cv2.circle(original_frame, c, radius_r[max_r], color, thickness=2)
+
+        return original_frame
+
     def detect_buoys(self, frame):
         frame_b = frame[:,:,0]
         frame_g = frame[:,:,1]
         frame_r = frame[:,:,2]
+
+        frame_y = (frame_g + frame_r)/2
 
         # Function mapping
         # https://stackoverflow.com/questions/35215161/most-efficient-way-to-map-function-over-numpy-array
@@ -201,63 +208,33 @@ class Gaussian:
         pdf_y_r = fn_y_r(frame_r)
 
         # Thresold by Tial and Error
-
-        print('R max ',np.amax(pdf_r_r))
-        print('G max ',np.amax(pdf_r_g))
-        print('B max ',np.amax(pdf_r_b))
-
-        # Max PDF G G 0.00063265
-        _frame_gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-
-        print('Noise')
-        print(pdf_r_r[227,150])
-        print(pdf_r_g[227,150])
-        print(pdf_r_b[227,150])
-
-        print('Buoy')
-        print(pdf_r_r[195,342])
-        print(pdf_r_g[195,342])
-        print(pdf_r_b[195,342])
-        print((pdf_r_r > 0.00027704).shape)
-        print(frame_r.shape)
-        #_frame_r = cv2.GaussianBlur(frame_r,(5,5),0)
+        # Red Buoy
+        kernel = np.ones((9,9),np.uint8)
         _frame_r = self.get_thresholded_pdf(frame_r, pdf_r_r > .99*np.amax(pdf_r_r))
-        #_frame_r = cv2.GaussianBlur(_frame_r,(5,5),0)
-        kernel = np.ones((9,9),np.uint8)
         _frame_r = cv2.morphologyEx(_frame_r, cv2.MORPH_OPEN, kernel)
-        #_frame_r = cv2.medianBlur(_frame_r,3)
-        #kernel = np.ones((7,7),np.uint8)
-        #_frame_r = cv2.erode(_frame_r,kernel,iterations = 1)
-        kernel = np.ones((9,9),np.uint8)
         _frame_r = cv2.dilate(_frame_r,kernel,iterations = 1)
-        #temp = self.skel(_frame_r)
-        #kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (10,10))
-        #_frame_r = cv2.morphologyEx(temp, cv2.MORPH_CLOSE, kernel)
+        frame = self.draw_buoy_contour(frame, _frame_r, (0, 0, 255))
+
+        # Green Buoy
+        # kernel = np.ones((9,9),np.uint8)
+        # _frame_g = self.get_thresholded_pdf(frame_g, pdf_g_g > .95*np.amax(pdf_g_g))
+        # _frame_g = cv2.morphologyEx(_frame_g, cv2.MORPH_OPEN, kernel)
+        # _frame_g = cv2.dilate(_frame_g,kernel,iterations = 1)
+        # frame = self.draw_buoy_contour(frame, _frame_g, (0, 255, 0))
+
+        # Yellow Buoy
+        # kernel = np.ones((9,9),np.uint8)
+        # _frame_y = self.get_thresholded_pdf(frame_y, pdf_y_r > .85*np.amax(pdf_y_r))
+        # _frame_y = self.get_thresholded_pdf(_frame_y, pdf_y_g > .85*np.amax(pdf_y_g))
+        # _frame_y = self.get_thresholded_pdf(_frame_y, pdf_y_b < 0.50)
+        # _frame_y = cv2.morphologyEx(_frame_y, cv2.MORPH_OPEN, kernel)
+        # _frame_y = cv2.dilate(_frame_y,kernel,iterations = 1)
+        # frame = self.draw_buoy_contour(frame, _frame_y, (0, 255, 255))
+
+
         # R 0.0105136
         # G 0.01210605
         # B 0.009138
 
-        # Max PDF G B 0.00048706450619803384
-        # _frame_b = self.get_thresholded_pdf(frame_b, pdf_g_b, 0.00048)
-        # Max PDF G R 0.0002954202761348719
-        # _frame_r = self.get_thresholded_pdf(frame_r, pdf_g_r, 0.00029)
-        # print(p)
-        # print(np.array([_frame_b, _frame_g, _frame_r]))
-        '''
-        std_r_r = sqrt(self.variance_r[2])
-        x_r = np.linspace(0,255,256)
-        #x_r = np.linspace(self.mean_r[2] - 3*std_r_r,self.mean_r[2] + 3*std_r_r, 480)
-        #plt.plot(self.get_histogram(frame, 2),'r')
-        histr_r = self.get_histogram(frame, 2)
-        mr_r, vr_r = self.get_gaussian(histr_r)
-        pdf = np.vectorize(self.get_pdf)
-        pdfr_r = pdf(histr_r, mr_r, vr_r)
-        print(np.amax(pdfr_r))
-        plt.plot(x_r, pdfr_r,'r')
-        _frame_r = self.get_thresholded_pdf(frame_r,pdfr_r)
-        '''
-        #plt.plot(self.get_histogram(frame, 1),'g')
-        #plt.plot(self.get_histogram(frame, 0),'b')
-        #plt.show()
 
-        return _frame_r
+        return frame
