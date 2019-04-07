@@ -137,26 +137,27 @@ class Gaussian:
     def draw_buoy_contour(self, original_frame, reference_frame, color):
         contours, hier = cv2.findContours(reference_frame.copy(), 1, 2)
         radius_r = []
-        for c in contours:
-            point,radius = cv2.minEnclosingCircle(c)
-            radius_r.append(int(radius))
+        if contours:
+            for c in contours:
+                point,radius = cv2.minEnclosingCircle(c)
+                radius_r.append(int(radius))
 
-        max_r = np.argmax(radius_r)
-        cnt = contours[max_r]
-        moments = [cv2.moments(cnt)]
+            max_r = np.argmax(radius_r)
+            cnt = contours[max_r]
+            moments = [cv2.moments(cnt)]
 
-        centroids = [(int(M['m10'] / M['m00']), int(M['m01'] / M['m00'])) for M in moments]
-        for c in centroids:
-            cv2.circle(original_frame, c, radius_r[max_r], color, thickness=2)
+            centroids = [(int(M['m10'] / M['m00']), int(M['m01'] / M['m00'])) for M in moments]
+            for c in centroids:
+                cv2.circle(original_frame, c, radius_r[max_r], color, thickness=2)
 
         return original_frame
 
-    def detect_buoys(self, frame):
+    def detect_buoys(self, original_frame):
+        frame = original_frame.copy()
         frame_b = frame[:,:,0]
         frame_g = frame[:,:,1]
         frame_r = frame[:,:,2]
 
-        frame_y = (frame_g + frame_r)/2
 
         # Function mapping
         # https://stackoverflow.com/questions/35215161/most-efficient-way-to-map-function-over-numpy-array
@@ -213,23 +214,32 @@ class Gaussian:
         _frame_r = self.get_thresholded_pdf(frame_r, pdf_r_r > .99*np.amax(pdf_r_r))
         _frame_r = cv2.morphologyEx(_frame_r, cv2.MORPH_OPEN, kernel)
         _frame_r = cv2.dilate(_frame_r,kernel,iterations = 1)
-        frame = self.draw_buoy_contour(frame, _frame_r, (0, 0, 255))
+        original_frame = self.draw_buoy_contour(original_frame, _frame_r, (0, 0, 255))
 
         # Green Buoy
-        # kernel = np.ones((9,9),np.uint8)
-        # _frame_g = self.get_thresholded_pdf(frame_g, pdf_g_g > .95*np.amax(pdf_g_g))
-        # _frame_g = cv2.morphologyEx(_frame_g, cv2.MORPH_OPEN, kernel)
-        # _frame_g = cv2.dilate(_frame_g,kernel,iterations = 1)
-        # frame = self.draw_buoy_contour(frame, _frame_g, (0, 255, 0))
+        kernel = np.ones((7,7),np.uint8)
+        _frame_gg = self.get_thresholded_pdf(frame_g, pdf_g_g > .97*np.amax(pdf_g_g))
+        _frame_gr = self.get_thresholded_pdf(frame_r, pdf_g_r < .97*np.amax(pdf_g_r))
+        _frame_gg = cv2.erode(_frame_gg, kernel)
+        _frame_g = np.bitwise_and(_frame_gg, _frame_gr)
+        _frame_g = cv2.dilate(_frame_g,kernel,iterations = 1)
+        original_frame = self.draw_buoy_contour(original_frame, _frame_g, (0, 255, 0))
 
         # Yellow Buoy
-        # kernel = np.ones((9,9),np.uint8)
-        # _frame_y = self.get_thresholded_pdf(frame_y, pdf_y_r > .85*np.amax(pdf_y_r))
-        # _frame_y = self.get_thresholded_pdf(_frame_y, pdf_y_g > .85*np.amax(pdf_y_g))
-        # _frame_y = self.get_thresholded_pdf(_frame_y, pdf_y_b < 0.50)
-        # _frame_y = cv2.morphologyEx(_frame_y, cv2.MORPH_OPEN, kernel)
-        # _frame_y = cv2.dilate(_frame_y,kernel,iterations = 1)
-        # frame = self.draw_buoy_contour(frame, _frame_y, (0, 255, 255))
+        kernel = np.ones((7,7),np.uint8)
+        _frame_yr = self.get_thresholded_pdf(frame_r, pdf_y_r > .75*np.amax(pdf_y_r))
+        _frame_yg = self.get_thresholded_pdf(frame_g, pdf_y_g > .95*np.amax(pdf_y_g))
+        _frame_yb = self.get_thresholded_pdf(frame_b, pdf_y_b > .95*np.amax(pdf_y_b))
+        _frame_yr = cv2.erode(_frame_yr, kernel)
+        _frame_yg = cv2.erode(_frame_yg, kernel)
+        _frame_yb = np.bitwise_not(_frame_yb)
+        _frame_y = np.bitwise_or(_frame_yr, _frame_yg)
+        _frame_y = np.bitwise_and(_frame_y, _frame_yb)
+        kernel = np.ones((9,9),np.uint8)
+        _frame_y = cv2.dilate(_frame_y,kernel,iterations = 1)
+        _frame_y = np.bitwise_and(_frame_y, np.bitwise_not(_frame_r))
+        original_frame = self.draw_buoy_contour(original_frame, _frame_y, (0, 255, 255))
+
 
 
         # R 0.0105136
@@ -237,4 +247,4 @@ class Gaussian:
         # B 0.009138
 
 
-        return frame
+        return original_frame
