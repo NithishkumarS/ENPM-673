@@ -198,10 +198,15 @@ class Gaussian:
         # Red Buoy
         kernel = np.ones((9,9),np.uint8)
         _frame_r = self.get_thresholded_pdf(frame_r, pdf_r_r > .99*np.amax(pdf_r_r))
+        # cv2.imwrite('plots/Red_bouy_1D_initial.jpg', _frame_r)
         _frame_r = cv2.morphologyEx(_frame_r, cv2.MORPH_OPEN, kernel)
+        # cv2.imwrite('plots/Red_bouy_1D_morph.jpg', _frame_r)
         _frame_r = cv2.dilate(_frame_r,kernel,iterations = 1)
-        cv2.imshow('R frame ',_frame_r)
+        # cv2.imshow('R frame ',_frame_r)
+        # cv2.waitKey(0)
+        # cv2.imwrite('plots/Red_bouy_1D_dilated.jpg', _frame_r)
         original_frame = self.draw_buoy_contour(original_frame, _frame_r, (0, 0, 255))
+        # cv2.imwrite('plots/Red_bouy_1D.jpg', original_frame)
 
         # Green Buoy
         kernel = np.ones((7,7),np.uint8)

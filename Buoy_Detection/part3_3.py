@@ -36,7 +36,7 @@ def draw_buoy_contour(original_frame, reference_frame, color, prev_centroid):
         for c in centroids:
             if not prev_centroid:
                 cv2.circle(original_frame, c, radius_r[max_r], color, thickness=2)
-            elif  np.sqrt((prev_centroid[0][1] - c[1])**2 + (prev_centroid[0][0] - c[0])**2) < 100:
+            elif  np.sqrt((prev_centroid[0][1] - c[1])**2 + (prev_centroid[0][0] - c[0])**2) < 500:
                 cv2.circle(original_frame, c, radius_r[max_r], color, thickness=2)
             else:
                 return original_frame, prev_centroid
@@ -58,7 +58,7 @@ def detectTuning(log_likelihood, img, i):
         log_likelihood = get_thresholded_pdf(log_likelihood, (op))
         log_likelihood = cv2.dilate(log_likelihood,kernel,iterations = 1)
     else:
-        log_likelihood = get_thresholded_pdf(log_likelihood, log_likelihood > 0.65*np.max(log_likelihood))
+        log_likelihood = get_thresholded_pdf(log_likelihood, log_likelihood > 0.5*np.max(log_likelihood))
 
     return log_likelihood
 
@@ -67,7 +67,7 @@ def detectbuoy(img,prev_centroid):
     colors = ['Red', 'Yellow', 'Green']
     colors_value = [(0,0,255),(0,255,255),(0,255,0)]
     # prev_centroid = []
-    for i in range(1):
+    for i in range(1,2):
         w=np.load('weights_' +colors[i] + '.npy')
         Sigma=np.load('sigma_' +colors[i] + '.npy')
         mean=np.load('mean_' +colors[i] + '.npy')
@@ -87,7 +87,7 @@ def detectbuoy(img,prev_centroid):
 
         #log_likelihood = cv2.dilate(log_likelihood,kernel,iterations = 1)
         frame, prev_centroid = draw_buoy_contour(img, log_likelihood, colors_value[i], prev_centroid)
-    return img, prev_centroid
+    return log_likelihood, prev_centroid
 
 def main():
     cap = cv2.VideoCapture("detectbuoy.avi")
