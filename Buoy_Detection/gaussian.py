@@ -115,7 +115,7 @@ class Gaussian:
             centroids = [(int(M['m10'] / M['m00']), int(M['m01'] / M['m00'])) for M in moments]
             for c in centroids:
                 cv2.circle(original_frame, c, radius_r[max_r], color, thickness=2)
-
+            print(centroids)
         return original_frame
 
     def plot(self):
@@ -149,7 +149,7 @@ class Gaussian:
 
         return 0
 
-    def detect_buoys(self, original_frame):
+    def detect_buoys(self, original_frame, i):
         frame = original_frame.copy()
         frame_b = frame[:,:,0]
         frame_g = frame[:,:,1]
@@ -177,6 +177,7 @@ class Gaussian:
         # fn_r_g = np.vectorize(map_fn_r_g)
         # pdf_r_g = fn_r_g(frame_g)
         #
+
         map_fn_r_r = lambda x:self.get_pdf(x, self.mean_r[2], self.variance_r[2])
         fn_r_r = np.vectorize(map_fn_g_r)
         pdf_r_r = fn_r_r(frame_r)
@@ -196,6 +197,7 @@ class Gaussian:
 
         # Thresold by Tial and Error
         # Red Buoy
+
         kernel = np.ones((9,9),np.uint8)
         _frame_r = self.get_thresholded_pdf(frame_r, pdf_r_r > .99*np.amax(pdf_r_r))
         # cv2.imwrite('plots/Red_bouy_1D_initial.jpg', _frame_r)
@@ -208,16 +210,19 @@ class Gaussian:
         original_frame = self.draw_buoy_contour(original_frame, _frame_r, (0, 0, 255))
         # cv2.imwrite('plots/Red_bouy_1D.jpg', original_frame)
 
+
         # Green Buoy
-        kernel = np.ones((7,7),np.uint8)
-        _frame_gg = self.get_thresholded_pdf(frame_g, pdf_g_g > .97*np.amax(pdf_g_g))
-        _frame_gr = self.get_thresholded_pdf(frame_r, pdf_g_r < .97*np.amax(pdf_g_r))
-        _frame_gg = cv2.erode(_frame_gg, kernel)
-        _frame_g = np.bitwise_and(_frame_gg, _frame_gr)
-        _frame_g = cv2.dilate(_frame_g,kernel,iterations = 1)
-        original_frame = self.draw_buoy_contour(original_frame, _frame_g, (0, 255, 0))
+        if (i < 40):
+            kernel = np.ones((7,7),np.uint8)
+            _frame_gg = self.get_thresholded_pdf(frame_g, pdf_g_g > .97*np.amax(pdf_g_g))
+            _frame_gr = self.get_thresholded_pdf(frame_r, pdf_g_r < .97*np.amax(pdf_g_r))
+            _frame_gg = cv2.erode(_frame_gg, kernel)
+            _frame_g = np.bitwise_and(_frame_gg, _frame_gr)
+            _frame_g = cv2.dilate(_frame_g,kernel,iterations = 1)
+            original_frame = self.draw_buoy_contour(original_frame, _frame_g, (0, 255, 0))
 
         # Yellow Buoy
+
         kernel = np.ones((7,7),np.uint8)
         _frame_yr = self.get_thresholded_pdf(frame_r, pdf_y_r > .75*np.amax(pdf_y_r))
         _frame_yg = self.get_thresholded_pdf(frame_g, pdf_y_g > .95*np.amax(pdf_y_g))

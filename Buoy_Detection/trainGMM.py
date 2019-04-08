@@ -11,7 +11,7 @@ from scipy.stats import multivariate_normal as mvn
 
 
 thresh = 0.0001
-'''
+
 def compute_gaussian(x,mean, cv):
     print(np.sum((x-mean)@np.linalg.inv(cv)@np.transpose(x-mean),axis =0).shape)
     deter =  np.linalg.det(cv)
@@ -21,7 +21,7 @@ def compute_gaussian(x,mean, cv):
     else:
         a = 1
     return a
-'''
+
 
 def compute_EM(channel,no_of_gaussians,iters, color):
     n,d = channel.shape
@@ -34,30 +34,25 @@ def compute_EM(channel,no_of_gaussians,iters, color):
     latent_variable = np.zeros((n, no_of_gaussians))
     log_likelihoods = []
     while len(log_likelihoods) < iters:
+        print('Iteration number :',len(log_likelihoods))
         for k in range(no_of_gaussians):
             calc = weight[k] * mvn.pdf(channel, mean[k], cv[k], allow_singular=True)
-            print(calc.shape)
             latent_variable[:,k] = calc.reshape((n,))
         log_likelihood = np.sum(np.log(np.sum(latent_variable, axis = 1)))
-        print('{0} -> {1}'.format(len(log_likelihoods),log_likelihood))
         log_likelihoods.append(log_likelihood)
         latent_variable = (latent_variable.T / np.sum(latent_variable, axis = 1)).T
-        N_ks = np.sum(latent_variable, axis = 0)
+        latent_sum = np.sum(latent_variable, axis = 0)
         for k in range(no_of_gaussians):
-            if (N_ks[k]==0):
+            if (latent_sum[k]==0):
                 continue
-            mean[k] = 1. / N_ks[k] * np.sum(latent_variable[:, k] * channel.T, axis = 1).T
+            mean[k] = 1. / latent_sum[k] * np.sum(latent_variable[:, k] * channel.T, axis = 1).T
             x_mean = np.matrix(channel - mean[k])
-            cv[k] = np.array(1 / N_ks[k] * np.dot(np.multiply(x_mean.T,  latent_variable[:, k]), x_mean))
-            weight[k] = 1. / n * N_ks[k]
-        if len(log_likelihoods) < 2 : continue
-        if len(log_likelihoods)>10000 or np.abs(log_likelihood - log_likelihoods[-2]) < thresh :
+            cv[k] = np.array(1 / latent_sum[k] * np.dot(np.multiply(x_mean.T,  latent_variable[:, k]), x_mean))
+            weight[k] = 1. / n * latent_sum[k]
+        if len(log_likelihoods) < 2 :
+            continue
+        if np.abs(log_likelihood - log_likelihoods[-2]) < thresh :
             break
-    plt.plot(log_likelihoods)
-    plt.title('Log Likelihood vs iteration plot')
-    plt.xlabel('Iterations')
-    plt.ylabel('log likelihood')
-    plt.show()
     np.save('parameters/weights_' + color, weight)
     np.save('parameters/cv_' + color, cv)
     np.save('parameters/mean_' + color, mean)

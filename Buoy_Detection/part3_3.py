@@ -33,7 +33,7 @@ def draw_buoy_contour(original_frame, reference_frame, color, prev_centroid):
         cnt = contours[max_r]
         moments = [cv2.moments(cnt)]
         centroids = [(int(M['m10'] / M['m00']), int(M['m01'] / M['m00'])) for M in moments]
-        print(prev_centroid)
+        #print(prev_centroid)
         for c in centroids:
             if not prev_centroid:
                 cv2.circle(original_frame, c, radius_r[max_r], color, thickness=2)
@@ -59,30 +59,41 @@ def detectTuning(log_likelihood, img, i):
         # cv2.imshow('eroded',log_likelihood)
         # op = (log_likelihood > .99*thresh  and log_likelihood > .000012)
         op = np.bitwise_and(log_likelihood > 0.5*thresh, log_likelihood > .0000129)
-        print('op',op)
+        #print('op',op)
         ind = np.unravel_index(np.argmax(op, axis=None), log_likelihood.shape)
-
         #ind = np.unravel_index(np.argwhere(log_likelihood == np.amax(log_likelihood)), log_likelihood.shape)
-        print('indices:',ind)
+        #print('indices:',ind)
         mask = np.zeros(log_likelihood.shape, dtype = "uint8")
-        print('thresh',thresh)
+        #print('thresh',thresh)
         cv2.circle(mask, (ind[1],ind[0]), 50, (255,255,255), -1)
-        cv2.imshow('mask',mask)
+        #cv2.imshow('mask',mask)
 
         op1= np.bitwise_and(log_likelihood > 0.3*thresh, mask)
         log_likelihood = get_thresholded_pdf(log_likelihood, (op))
         log_likelihood = cv2.dilate(log_likelihood,kernel,iterations = 1)
-    if (i==0):
+    elif (i==0):
         kernel = np.ones((7,7),np.uint8)
         thresh = np.max(log_likelihood)
         op = np.bitwise_and(log_likelihood > 0.5*thresh, log_likelihood > .000025)
-        print('op',op)
         log_likelihood = get_thresholded_pdf(log_likelihood, (op))
         log_likelihood = cv2.dilate(log_likelihood,kernel,iterations = 1)
+    else:
+        kernel = np.ones((7,7),np.uint8)
 
-#
-#else:
-    #    log_likelihood = get_thresholded_pdf(log_likelihood, log_likelihood > 0.65*np.max(log_likelihood))
+
+        thresh = np.max(log_likelihood)
+        op = np.bitwise_and(log_likelihood > 0.8*thresh, log_likelihood > .000012)
+
+        ind = np.unravel_index(np.argmax(op, axis=None), log_likelihood.shape)
+        mask = np.zeros(log_likelihood.shape, dtype = "uint8")
+        cv2.circle(mask, (ind[1],ind[0]), 50, (255,255,255), -1)
+        # cv2.imshow('mask',mask)
+        #
+        op1= np.bitwise_and(log_likelihood > 0.3*thresh, op)
+        log_likelihood = get_thresholded_pdf(log_likelihood, op1)
+
+        log_likelihood = cv2.dilate(log_likelihood,kernel,iterations = 1)
+        cv2.imshow('log_likelihood', log_likelihood)
 
     return log_likelihood
 
@@ -91,7 +102,7 @@ def detectbuoy(img,prev_centroid):
     colors = ['Red', 'Yellow', 'Green']
     colors_value = [(0,0,255),(0,255,255),(0,255,0)]
     # prev_centroid = []
-    for i in range(1):
+    for i in range(0,3):
         w=np.load('parameters/weights_' +colors[i] + '.npy')
         Sigma=np.load('parameters/cv_' +colors[i] + '.npy')
         mean=np.load('parameters/mean_' +colors[i] + '.npy')
@@ -104,12 +115,8 @@ def detectbuoy(img,prev_centroid):
             likelihoods[k] = w[k] * mvn.pdf(xtest, mean[k], Sigma[k],allow_singular=True)
             log_likelihood = likelihoods.sum(0)
         log_likelihood = np.reshape(log_likelihood, (nr, nc))
-        #log_likelihood[log_likelihood > 0.65*np.max(log_likelihood) ] = 255
-        #log_likelihood = get_thresholded_pdf(log_likelihood, log_likelihood > 0.65*np.max(log_likelihood))
         log_likelihood = detectTuning(log_likelihood, img, i)
         log_likelihood = log_likelihood.astype(np.uint8)
-
-        #log_likelihood = cv2.dilate(log_likelihood,kernel,iterations = 1)
         frame, prev_centroid = draw_buoy_contour(img, log_likelihood, colors_value[i], prev_centroid)
     return img , prev_centroid
 
@@ -118,9 +125,11 @@ def main():
     centroid = []
     while cap.isOpened():
         ret, img = cap.read()
+        #img = cv2.GaussianBlur(img,(5,5),0)
+        #img = cv2.medianBlur(img,7)
         frame, centroid = detectbuoy(img, centroid)
         cv2.imshow('Buoy Deection', frame)
-        if cv2.waitKey(0) & 0xFF == ord('q'):
+        if cv2.waitKey(1) & 0xFF == ord('q'):
             break
     cap.release()
     cv2.destroyAllWindows()

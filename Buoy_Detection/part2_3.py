@@ -17,21 +17,26 @@ import matplotlib.pyplot as plt
 import numpy as np
 from gaussian import Gaussian
 
+
 def main():
     """
     Entry point of app
     """
     cap = cv2.VideoCapture("detectbuoy.avi")
     gaussian = Gaussian()
-
+    frame_width = int(cap.get(3))
+    frame_height = int(cap.get(4))
+    out = cv2.VideoWriter('output_part_2_3.avi',cv2.VideoWriter_fourcc('M','J','P','G'), 15, (frame_width,frame_height))
     did_run_once = False
-
+    i=0
     while cap.isOpened():
+        i = i + 1
         ret, frame = cap.read()
         if frame is not None and not did_run_once:
-            did_run_once = True
-            frame = gaussian.detect_buoys(frame)
+            did_run_once = False
+            frame = gaussian.detect_buoys(frame, i)
             cv2.imshow('Buoy Detection', frame)
+            out.write(frame)
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
