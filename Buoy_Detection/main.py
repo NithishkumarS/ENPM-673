@@ -3,8 +3,6 @@
 __author__ = "Nantha Kumar Sunder, Nithish Kumar, Rama Prashanth"
 __version__ = "0.1.0"
 __license__ = "MIT"
-
-
 import os
 import sys
 
@@ -18,7 +16,6 @@ import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 from gaussian import Gaussian
-
 
 def main():
     """
@@ -40,7 +37,6 @@ def main():
 
     cap.release()
     cv2.destroyAllWindows()
-
 
 if __name__ == "__main__":
     main()
