@@ -14,5 +14,35 @@ except:
 import cv2
 import numpy as np
 
+def computeJacobian(x,y):
+    a = np.array([[x,0,y,0,1,0],[0,x,0,y,0,1]])
+    return a
+
 def affineLKtracker(frame, tmpImg, cornerPoints, prevWarp):
-    return frame, prevWarp
+    frame = cv2.warpAffine(frame, prevWarp, (frame.shape[1], frame.shape[0]))
+#     cv2.imshow('frame after',frame)  
+    template = tmpImg[cornerPoints[0][1]:cornerPoints[2][1],cornerPoints[0][0]:cornerPoints[2][0] ]
+    
+    #gradient X and Y
+    gradX = cv2.Sobel(frame, cv2.CV_32F, 1, 0, ksize=5)
+    gradY = cv2.Sobel(frame, cv2.CV_32F, 0, 1, ksize=5)
+    cv2.imshow('gradX',gradX)
+    cv2.imshow('gradY',gradY)
+    
+    print(frame.shape)
+    op1 = np.zeros_like(frame,dtype = np.float32)
+    op = np.zeros((frame.shape[0],frame.shape[1]*6),dtype = np.float32)
+    print(op.shape)
+    
+    # Steepest Descent 
+    for x in range(0,frame.shape[1]):
+        for y in range(0,frame.shape[0]):
+            tmp =  np.matmul(np.array([[x,y]]),computeJacobian(x, y)).astype(np.float32)
+            
+            for i in range(6):
+                op[y][x+(i*720)-1]=tmp[0][i]
+    cv2.imshow('op',op)
+    print(op1)
+    error = 1
+    Warp = prevWarp
+    return cornerPoints, Warp, error
