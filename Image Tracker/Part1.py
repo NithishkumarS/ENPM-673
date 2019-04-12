@@ -52,15 +52,14 @@ def main():
     imageList, cornerPoints, tmpImg = loadImages(imageList)
     totalFrame = len(imageList)
     frameCount = 0
-    prevWarp = np.zeros((1,1))
+    prevWarp = np.ones(6)
     while frameCount < len(imageList):
         frame = cv2.imread(imageList[frameCount])
         if frameCount != 0:
-            frame, prevWarp = affineLKtracker(frame, tmpImg, cornerPoints, prevWarp)
-        else:
-            prevWarp = cornerPoints
+            frame, cornerPoints, prevWarp = affineLKtracker(frame, tmpImg, cornerPoints, prevWarp)
         cv2.imshow('frame', frame)
         frameCount = frameCount + 1
+        tmpImg = frame
         if cv2.waitKey(0) & 0xFF == ord('q'):
             break
 
