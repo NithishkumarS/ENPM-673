@@ -20,17 +20,20 @@ def computeJacobian(x,y):
 
 def affineLKtracker(frame, tmpImg, cornerPoints, prevWarp):
     frame = cv2.warpAffine(frame, prevWarp, (frame.shape[1], frame.shape[0]))
-#     cv2.imshow('frame after',frame)  
+    cv2.imshow('frame after',frame)  
     input_frame = frame[cornerPoints[0][1]:cornerPoints[2][1],cornerPoints[0][0]:cornerPoints[2][0] ]
     template = tmpImg[cornerPoints[0][1]:cornerPoints[2][1],cornerPoints[0][0]:cornerPoints[2][0] ]
-    
+#     cv2.imshow('template',template)
+#     cv2.imshow('innp_frame',input_frame)
     diff = template - input_frame
 
     #gradient X and Y
-    gradX = cv2.Sobel(input_frame, cv2.CV_32F, 1, 0, ksize=5)
-    gradY = cv2.Sobel(input_frame, cv2.CV_32F, 0, 1, ksize=5)
+    gradX = np.uint8(cv2.Sobel(input_frame, cv2.CV_64F, 1, 0, ksize=3))
+    gradY = np.uint8(cv2.Sobel(input_frame, cv2.CV_64F, 0, 1, ksize=3))
     cv2.imshow('gradX',gradX)
     cv2.imshow('gradY',gradY)
+    
+
     
     print(input_frame.shape)
     op1 = np.zeros_like(input_frame)
@@ -48,22 +51,28 @@ def affineLKtracker(frame, tmpImg, cornerPoints, prevWarp):
                 op[i][y][x]=tmp[0][i]
 
 #                 op[y][x+(i*input_frame.shape[1])-1]=tmp[0][i]
-    output_jacob = op.reshape((input_frame.shape[0]*6, input_frame.shape[1]))
+    output_jacob = np.uint8(op.reshape((input_frame.shape[0]*6, input_frame.shape[1])))
     cv2.imshow('op',output_jacob)
     
     # Compute Hessian
     Hessian = np.zeros((input_frame.shape[1],input_frame.shape[1])).astype(np.float64)
     SD_param = np.zeros((input_frame.shape[1],input_frame.shape[1])).astype(np.float64)
     print('Hessian',Hessian.shape)
+    print('OP:::::::::::::::::::',op.shape)
     
     for i in range(6):
         inp = np.matmul(op[i].T,op[i])
         Hessian += inp
+    Hessian1 = [[np.sum(np.matmul(op[i].T,op[i])) for i in range(6)] for i in range(6)]  
 #     Hessian = [[np.sum(np.multiply(op[a].T, op[b])) for a in range(6)] for b in range(6)]
     print(Hessian.shape)
+    print(len(Hessian1))
+    print('0',len(Hessian1[0]))
+    
 #     np.matmul(op,np.transpose(op))          # (nx6m) x (6mxn)  =nxn 
-    cv2.imshow('Hessian',Hessian)
-    Hessian_Inv = np.linalg.inv(Hessian)
+    print('Hes',Hessian1)
+#     cv2.imshow('Hessian',Hessian)
+    Hessian_Inv = np.linalg.pinv(Hessian1)
     
     cv2.imshow('HessianInv',Hessian_Inv)
     
@@ -74,8 +83,14 @@ def affineLKtracker(frame, tmpImg, cornerPoints, prevWarp):
     print(SD_param)
     
     delp = np.matmul(Hessian_Inv,SD_param)
-    print(delp.shape)
-#   
+    print('delp',delp)
+    delp = delp.reshape((2,3))
+    Warp = prevWarp + delp
+    
+    print('corner Ponts before:',cornerPoints)
+    cornerPoints = [np.matmul(Warp,[x,y,1]).astype(int) for x,y in cornerPoints]
+    print('corner Ponts after:',cornerPoints)
+
     
     
     '''
@@ -83,9 +98,6 @@ def affineLKtracker(frame, tmpImg, cornerPoints, prevWarp):
         op[y][x+(i*input_frame.shape[1])-1]
 
     '''
-    
- 
-    
-    error = 1
-    Warp = prevWarp
+    error = np.linalg.norm(delp)
+    print('error: ',error)
     return cornerPoints, Warp, error
