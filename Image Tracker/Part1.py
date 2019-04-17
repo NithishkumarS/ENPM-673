@@ -14,6 +14,8 @@ try:
 except:
     pass
 import cv2
+
+import matplotlib.pyplot as plt
 import numpy as np
 from lkTracker import affineLKtracker
 
@@ -54,31 +56,34 @@ def main():
     imageList, cornerPoints, tmpImg = loadImages(imageList)
     totalFrame = len(imageList)
     frameCount = 1
-    prevWarp = np.zeros((2,3))
-    cornerPoints = np.array([[122,101],[122,278],[341,278],[341,101]])
-    prevWarp[0][0] = 1
-    prevWarp[1][1] = 1
-    #print(prevWarp) 
-    while frameCount < len(imageList):
+    prevWarp = np.array([[1,0,2.41],[0,1,2.5]])
+    
+    while frameCount <len(imageList):
         tmpImg = cv2.imread(imageList[frameCount-1],cv2.IMREAD_GRAYSCALE)
-        #tmpImg = cv2.imread('/home/nithish/pyEnv/eclipse_py/Perception/ENPM-673/Image Tracker/data/car/frame0020.jpg',cv2.IMREAD_GRAYSCALE)
+      #  tmpImg = cv2.imread('/home/nithish/pyEnv/eclipse_py/Perception/ENPM-673/Image Tracker/data/car/frame0020.jpg',cv2.IMREAD_GRAYSCALE)
         frame = cv2.imread(imageList[frameCount],cv2.IMREAD_GRAYSCALE)
         #frame = cv2.imread('/home/nithish/pyEnv/eclipse_py/Perception/ENPM-673/Image Tracker/data/car/frame0021.jpg',cv2.IMREAD_GRAYSCALE)
-        error = 2
-        c =0
-        while c <7:#error > .01:
+        error = 1
+        c = 0
+#         plt.ion()
+        no = 0
+        
+        while error > .001:
             if frameCount != 0:
-                cornerPoints, prevWarp, error = affineLKtracker(frame, tmpImg, cornerPoints, prevWarp)
-        #        tmpImg = frame   
+                no = no + 1 
+                cornerPoints, prevWarp, error = affineLKtracker(frame, tmpImg, cornerPoints, prevWarp,no)
+                plotPoints = [i.astype(int) for i in cornerPoints]
+#                  print('plot points:', plotPoints)
+                ploti = cv2.rectangle(frame,(plotPoints[0][0],plotPoints[0][1]),(plotPoints[2][0],plotPoints[2][1]),[0,0,255])
+                cv2.imshow('frame', ploti)
+                if cv2.waitKey(0) & 0xFF == ord('q'):
+                    break   
+                
             c += 1
-        frame = cv2.rectangle(frame,(cornerPoints[0][0],cornerPoints[0][1]),(cornerPoints[2][0],cornerPoints[2][1]),[0,0,255])
-        cv2.imshow('frame', frame)
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break   
+        print('cornerPoints: ', cornerPoints)
         frameCount = frameCount + 1
-
+    plt.show(block=True)    
     cv2.destroyAllWindows()
 
 if __name__ == "__main__":
-    """ This is executed when run from the command line """
     main()
