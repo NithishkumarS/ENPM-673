@@ -42,7 +42,7 @@ def affineLKtracker(frame, tmpImg, cornerPoints, prevWarp,no):
     print(input_frame.shape)
     diff = template - input_frame
     cv2.imshow('diff',diff)
-
+    # cv2.waitKey(0)
     #gradient X and Y
     gradX = cv2.Sobel(input_frame, cv2.CV_64F, 1, 0, ksize=3)
     gradY = cv2.Sobel(input_frame, cv2.CV_64F, 0, 1, ksize=3)
@@ -53,6 +53,29 @@ def affineLKtracker(frame, tmpImg, cornerPoints, prevWarp,no):
 #     op = np.zeros((input_frame.shape[0],input_frame.shape[1]))*6
     op = op.reshape((6,input_frame.shape[0], input_frame.shape[1]))
     print('op size:',op.shape)
+
+
+
+    # New Code
+    #------------------------------------------------------------------------------------------
+    H, W = template.shape
+    Jx = np.tile(np.linspace(0, W-1, W), (H, 1)).flatten()
+    Jy = np.tile(np.linspace(0, H-1, H), (W, 1)).T.flatten()
+
+    # Step 5 - Compute the steepest descent images
+    steepest_descent = np.vstack([gradX.ravel() * Jx, gradY.ravel() * Jx,
+        gradX.ravel()*Jy, gradY.ravel()*Jy, gradX.ravel(), gradY.ravel()]).T
+
+    # Step 6 - Compute the Hessian matrix
+    hessian = np.matmul(steepest_descent.T, steepest_descent)
+
+    # Step 7/8 - Compute delta P
+    delta_p = np.matmul(np.linalg.inv(hessian), np.matmul(steepest_descent.T, diff.flatten()))
+    #----------------------------------------------------------------------------------------------
+    print('delta_p', delta_p)
+
+
+
 
     # Steepest Descent
     for x in range(0,input_frame.shape[1]):
@@ -95,6 +118,12 @@ def affineLKtracker(frame, tmpImg, cornerPoints, prevWarp,no):
 
     delp = np.matmul(Hessian_Inv,SD)
     print('delp',delp)
+
+    #-----------------------------------
+    delp = delta_p
+    #-----------------------------------
+
+
     Warp = prevWarp + np.array([[delp[0],delp[2],delp[4]], [delp[1],delp[3],delp[5]]])
     print('delp: ',np.array([[delp[0],delp[2],delp[4]], [delp[1],delp[3],delp[5]]]))
     print('warp:', Warp)

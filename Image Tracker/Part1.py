@@ -39,7 +39,6 @@ def loadImages(option):
     imageList = sorted(imageList, key = last_4chars)
     for i in range(len(imageList)):
         imageList[i] = videos[option] + imageList[i] + basename
-    # print(imageList)
     if option == '1':
         cornerPoints = np.array([[122,101],[122,278],[341,278],[341,101]])
     elif option == '2':
@@ -57,7 +56,7 @@ def main():
     imageList, cornerPoints, tmpImg = loadImages(imageList)
     totalFrame = len(imageList)
     frameCount = 1
-    prevWarp = np.array([[1,0,0.1],[0,1,-0.1]])
+    prevWarp = np.array([[1,0,0.1],[0,1,0.1]])
     plotPoints = [i.astype(int) for i in cornerPoints]
 
 
