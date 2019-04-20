@@ -32,10 +32,3 @@ def scaleToAverageBrightness(frame, tmpImg, cornerPoints):
     frame[int(cornerPoints[0][1]):int(cornerPoints[2][1]),int(cornerPoints[0][0]):int(cornerPoints[2][0])] = input_frame
     return frame
 
-
-def huberLoss():
-    """
-    Huber loss function for outliers to minimize adverse affect
-    on the cost function evaluation
-    """
-    pass
