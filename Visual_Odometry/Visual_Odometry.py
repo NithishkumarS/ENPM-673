@@ -34,8 +34,6 @@ def main():
         new_img = cv2.imread(imageList[frameCount])
         pt_new = sift(new_img)
         pt_old = sift(old_image)
-        print(pt_new)
-        print(pt_old)
         cv2.imshow('frame', new_img)
         if cv2.waitKey(0) & 0xFF == ord('q'):
             break
