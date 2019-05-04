@@ -61,7 +61,7 @@ def ransac(P1,P2):
     # print(np.linalg.matrix_rank(F))
 
         # count = count + 1
-    return F
+    return F, inlinerP1, inlinerP2
 
 def computeEssentialMatrix(F):
     K = np.array([ [964.828979, 0,643.788025],[0,964.828979,484.40799 ],[0 ,0, 1] ])
@@ -77,15 +77,10 @@ def estimateCameraPose(E):
     W[2][2] = 1
     U, D, Vt = np.linalg.svd(E)
     Ds = np.array([[D[0],0,0],[0,D[1],0],[0,0,0]])
-    
+
     C = U[:,2]
     R1 = np.matmul(np.matmul(U,W),Vt)
     R2 = np.matmul(np.matmul(U,W.T),Vt)
-    
-    sign = np.linalg.det(R1)
-    if sign == 1:
-        return C, R1, R2
-    if sign == -1:
-        return -C, -R1, -R2
-    
-    
+
+    sign = round(np.linalg.det(R1))
+    return sign*C, sign*R1, sign*R2
