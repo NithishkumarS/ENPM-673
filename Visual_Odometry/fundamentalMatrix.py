@@ -69,5 +69,23 @@ def computeEssentialMatrix(F):
     r = np.linalg.matrix_rank(E)
     print(E)
     return E
-def estimateCameraPose():
+
+def estimateCameraPose(E):
+    W = np.zeros((3,3))
+    W[0][1] = -1
+    W[1][0] = 1
+    W[2][2] = 1
+    U, D, Vt = np.linalg.svd(E)
+    Ds = np.array([[D[0],0,0],[0,D[1],0],[0,0,0]])
+    
+    C = U[:,2]
+    R1 = np.matmul(np.matmul(U,W),Vt)
+    R2 = np.matmul(np.matmul(U,W.T),Vt)
+    
+    sign = np.linalg.det(R1)
+    if sign == 1:
+        return C, R1, R2
+    if sign == -1:
+        return -C, -R1, -R2
+    
     
