@@ -77,15 +77,10 @@ def estimateCameraPose(E):
     W[2][2] = 1
     U, D, Vt = np.linalg.svd(E)
     Ds = np.array([[D[0],0,0],[0,D[1],0],[0,0,0]])
-    
+
     C = U[:,2]
     R1 = np.matmul(np.matmul(U,W),Vt)
     R2 = np.matmul(np.matmul(U,W.T),Vt)
-    
-    sign = np.linalg.det(R1)
-    if sign == 1:
-        return C, R1, R2
-    if sign == -1:
-        return -C, -R1, -R2
-    
-    
+
+    sign = round(np.linalg.det(R1))
+    return sign*C, sign*R1, sign*R2
