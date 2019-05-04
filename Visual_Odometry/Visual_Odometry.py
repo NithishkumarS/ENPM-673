@@ -13,7 +13,8 @@ try:
 except:
     pass
 import cv2
-from sift import sift
+from featureMatch import sift, orb
+from fundamentalMatrix import computeFundamentalMatrix
 
 def loadImages():
     imageList = []
@@ -27,13 +28,16 @@ def loadImages():
 
 def main():
     """ Main entry point of the app """
-    frameCount = 50
+    frameCount = 1
     imageList = loadImages()
-    old_image = cv2.imread(imageList[49])
-    while frameCount < 51: #len(imageList):
+    old_img = cv2.imread(imageList[0])
+    while frameCount < 2: #len(imageList):
         new_img = cv2.imread(imageList[frameCount])
-        pt_new = sift(new_img)
-        pt_old = sift(old_image)
+        pts_new, pts_old = orb(new_img, old_img)
+        # drawMatch(kp_new, kp_old, new_img, old_img, des_new, des_old)
+        print(pts_new)
+        print(pts_old)
+        # print(computeFundamentalMatrix(pt_new[0:8], pt_old[0:8]))
         cv2.imshow('frame', new_img)
         if cv2.waitKey(0) & 0xFF == ord('q'):
             break
