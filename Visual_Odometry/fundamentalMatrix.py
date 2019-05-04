@@ -62,3 +62,12 @@ def ransac(P1,P2):
 
         # count = count + 1
     return F
+
+def computeEssentialMatrix(F):
+    K = np.array([ [964.828979, 0,643.788025],[0,964.828979,484.40799 ],[0 ,0, 1] ])
+    E = np.matmul(np.matmul(K.T ,F ),K)
+    r = np.linalg.matrix_rank(E)
+    print(E)
+    return E
+def estimateCameraPose():
+    
