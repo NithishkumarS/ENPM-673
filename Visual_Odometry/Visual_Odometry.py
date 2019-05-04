@@ -34,9 +34,10 @@ def main():
     while frameCount < 2: #len(imageList):
         new_img = cv2.imread(imageList[frameCount])
         pts_new, pts_old = orb(new_img, old_img)
+        ransac(pts_new, pts_old)
         # drawMatch(kp_new, kp_old, new_img, old_img, des_new, des_old)
-        print(pts_new)
-        print(pts_old)
+        # print(pts_new)
+        # print(pts_old)
         # print(computeFundamentalMatrix(pt_new[0:8], pt_old[0:8]))
         cv2.imshow('frame', new_img)
         if cv2.waitKey(0) & 0xFF == ord('q'):

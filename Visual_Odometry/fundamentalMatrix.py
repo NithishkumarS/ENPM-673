@@ -11,7 +11,7 @@ def computeFundamentalMatrix(P1, P2):
     H = (np.reshape(h, (3, 3)))
     return H
 
-def RANSAC(P1,P2):
+def ransac(P1,P2):
     n_iters = 1000
     count = 0
     thres = 10
