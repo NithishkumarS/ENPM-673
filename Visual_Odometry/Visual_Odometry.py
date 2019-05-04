@@ -14,7 +14,7 @@ except:
     pass
 import cv2
 from featureMatch import sift, orb
-from fundamentalMatrix import computeFundamentalMatrix
+from fundamentalMatrix import computeFundamentalMatrix, ransac
 
 def loadImages():
     imageList = []
@@ -34,7 +34,7 @@ def main():
     while frameCount < 2: #len(imageList):
         new_img = cv2.imread(imageList[frameCount])
         pts_new, pts_old = orb(new_img, old_img)
-        ransac(pts_new, pts_old)
+        print(ransac(pts_new, pts_old))
         # drawMatch(kp_new, kp_old, new_img, old_img, des_new, des_old)
         # print(pts_new)
         # print(pts_old)

@@ -3,7 +3,7 @@ import numpy as np
 def computeFundamentalMatrix(P1, P2):
     A =list()
     n = 1
-    for i in range(8):
+    for i in range(len(P1)):
         A.append([P1[i][0]*P2[i][0] , P1[i][0]*P2[i][1], P1[i][0], P1[i][1]*P2[i][0], P1[i][1]*P2[i][1], P2[i][1], P2[i][0] , P2[i][1], 1 ])
     A = np.array(A)
     U, s, Vt = np.linalg.svd(A)
@@ -12,7 +12,9 @@ def computeFundamentalMatrix(P1, P2):
     magF = np.linalg.norm(F, np.inf)
     F = F / magF
     FU , Fs, FV = np.linalg.svd(F)
-    Fs[2][2] = 0
+    # print(Fs)
+    # Fs[-1] = 0
+    Fs = np.array([[Fs[0],0,0],[0,Fs[1],0],[0,0,0]])
     F_hat = np.matmul(np.matmul(FU,Fs),FV)
     return F_hat
 
@@ -20,8 +22,43 @@ def computeFundamentalMatrix(P1, P2):
 def ransac(P1,P2):
     n_iters = 1000
     count = 0
-    thres = 10
-    while count < n_iters:
-        F = computeFundamentalMatrix()
-        count = count + 1
+    thres = 5
+    ratio = 0.5
+    np.random.seed(0)
+    while True: #count < n_iters:
+        # Computing Random Index
+        ranIdx = np.random.randint(len(P1), size=8)
+        # Creating three empty list
+        ranP1, ranP2, inlinerIdx = list(), list(), list()
+
+        # Points from new and old image from random idx
+        for i in range(len(ranIdx)):
+            ranP1.append(P1[ranIdx[i]])
+            ranP2.append(P2[ranIdx[i]])
+
+        # Compute fundamental Matrix
+        F = computeFundamentalMatrix(ranP1, ranP2)
+
+        # Adding Inliners for random index to
+        for i in range(len(P1)):
+            x_new = np.array([P1[i][0], P1[i][0], 1])
+            x_old = np.array([P2[i][0], P2[i][0], 1])
+            if abs(x_old @ F @ x_new.T) < thres:
+                inlinerIdx.append(i)
+
+        # If ratio of the number of inliners is greater than 0.5 break
+        if len(inlinerIdx)/len(P1) > ratio:
+            break
+
+    # Creating a inliners P1 and P2
+    inlinerP1, inlinerP2 = list(), list()
+    for i in range(len(inlinerIdx)):
+        inlinerP1.append(P1[i])
+        inlinerP2.append(P2[i])
+
+    # updating Fundamental matrix wrt to new points.
+    F = computeFundamentalMatrix(inlinerP1, inlinerP2)
+    # print(np.linalg.matrix_rank(F))
+
+        # count = count + 1
     return F

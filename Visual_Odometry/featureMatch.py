@@ -32,7 +32,7 @@ def sift(new_img, old_img):
     # img3 = cv2.drawMatchesKnn(new_img,kp_new,old_img,kp_old,good,None,flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
     # cv2.imshow('Matches', img3)
     # cv2.waitKey(0)
-    pts_new, pts_old = getMatchPoints (kp_old, kp_new, good)
+    pts_new, pts_old = getMatchPoints(kp_old, kp_new, good)
     return 0
 
 
@@ -52,7 +52,7 @@ def orb(new_img, old_img):
     # img3 = cv2.drawMatches(new_img,kp_new,old_img,kp_old,matches[:40],None,flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
     # cv2.imshow('Matches', img3)
     # cv2.waitKey(0)
-    pts_new, pts_old = getMatchPoints (kp_old, kp_new, matches)
+    pts_new, pts_old = getMatchPoints(kp_old, kp_new, matches)
     return pts_new, pts_old
 
 
