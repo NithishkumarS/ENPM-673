@@ -35,9 +35,9 @@ def main():
     while frameCount < 2: #len(imageList):
         new_img = cv2.imread(imageList[frameCount])
         pts_new, pts_old = orb(new_img, old_img)
-        F = ransac(pts_new, pts_old)
+        F, P1, P2 = ransac(pts_new, pts_old)
         E = computeEssentialMatrix(F)
-        print(estimateCameraPose(E))
+        C, R1, R2 = estimateCameraPose(E)
         # drawMatch(kp_new, kp_old, new_img, old_img, des_new, des_old)
         # print(pts_new)
         # print(pts_old)

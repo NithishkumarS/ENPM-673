@@ -61,7 +61,7 @@ def ransac(P1,P2):
     # print(np.linalg.matrix_rank(F))
 
         # count = count + 1
-    return F
+    return F, inlinerP1, inlinerP2
 
 def computeEssentialMatrix(F):
     K = np.array([ [964.828979, 0,643.788025],[0,964.828979,484.40799 ],[0 ,0, 1] ])
