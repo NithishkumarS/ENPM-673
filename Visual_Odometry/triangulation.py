@@ -1,9 +1,10 @@
 import numpy as np
 
-def projection(R , T , X ,K):
-    tmp = np.concatenate((np.eye(3),T.T),axis = 1)
+def projection(R , C , X ,K):
     
-    return np.matmul((np.matmul(K,np.matmul(R,tmp))) , X)
+    
+    tmp = np.concatenate((R.T , np.matmul(-R.T,C.T).reshape((1,3)).T ),axis = 1)
+    return np.matmul( np.matmul(K,np.matmul(tmp, X)))
 
 def triangulation(R, T, K, P1):
  
