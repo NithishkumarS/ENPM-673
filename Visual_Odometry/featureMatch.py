@@ -59,6 +59,7 @@ def orb(new_img, old_img):
 def getMatchPoints(kp_old, kp_new, matches):
     pts_new, pts_old = list(),list()
     for i in matches:
-        pts_new.append(kp_new[i.trainIdx].pt)
-        pts_old.append(kp_old[i.queryIdx].pt)
+        if i.trainIdx < len(kp_new) and i.queryIdx < len(kp_old):
+            pts_new.append(kp_new[i.trainIdx].pt)
+            pts_old.append(kp_old[i.queryIdx].pt)
     return pts_new, pts_old

@@ -33,17 +33,27 @@ def main():
     frameCount = 1
     imageList = loadImages()
     old_img = cv2.imread(imageList[0])
-    while frameCount < 2: #len(imageList):
+    Rc = np.eye(3)
+    plt.ion()
+    Tc = np.zeros((1,3))
+    while frameCount < len(imageList):
         new_img = cv2.imread(imageList[frameCount])
         pts_new, pts_old = orb(new_img, old_img)
         F, pts1, pts2 = ransac(pts_new, pts_old)
         E = computeEssentialMatrix(F)
         C, R1, R2 = estimateCameraPose(E)
         R_final, C_final = triangulation(C, R1, R2, pts1, pts2)
+        Rc = np.matmul(Rc, R_final)
+        Tc = Tc + np.matmul(C_final,Rc)
+        print(Tc)
         print(R_final)
         print(C_final)
+
+        plt.plot(Tc[0][0],Tc[0][2],'-ro')
+        plt.show()
+        plt.pause(0.0000001)
         cv2.imshow('frame', new_img)
-        if cv2.waitKey(0) & 0xFF == ord('q'):
+        if cv2.waitKey(1) & 0xFF == ord('q'):
             break
         frameCount = frameCount + 1
     cv2.destroyAllWindows()
