@@ -16,6 +16,7 @@ import cv2
 from featureMatch import sift, orb
 from fundamentalMatrix import computeFundamentalMatrix, ransac
 from fundamentalMatrix import computeEssentialMatrix, estimateCameraPose
+from triangulation import triangulation
 
 def loadImages():
     imageList = []
@@ -35,13 +36,12 @@ def main():
     while frameCount < 2: #len(imageList):
         new_img = cv2.imread(imageList[frameCount])
         pts_new, pts_old = orb(new_img, old_img)
-        F, P1, P2 = ransac(pts_new, pts_old)
+        F, pts1, pts2 = ransac(pts_new, pts_old)
         E = computeEssentialMatrix(F)
         C, R1, R2 = estimateCameraPose(E)
-        # drawMatch(kp_new, kp_old, new_img, old_img, des_new, des_old)
-        # print(pts_new)
-        # print(pts_old)
-        # print(computeFundamentalMatrix(pt_new[0:8], pt_old[0:8]))
+        R_final, C_final = triangulation(C, R1, R2, pts1, pts2)
+        print(R_final)
+        print(C_final)
         cv2.imshow('frame', new_img)
         if cv2.waitKey(0) & 0xFF == ord('q'):
             break
