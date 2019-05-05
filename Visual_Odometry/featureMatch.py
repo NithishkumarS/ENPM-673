@@ -60,9 +60,11 @@ def getMatchPoints(kp_old, kp_new, matches):
     pts_new, pts_old = list(),list()
     for i in matches:
         if i.trainIdx < len(kp_new) and i.queryIdx < len(kp_old):
-            pts_new.append(kp_new[i.trainIdx].pt)
-            pts_old.append(kp_old[i.queryIdx].pt)
+            # pts_new.append(kp_new[i.trainIdx].pt)
+            # pts_old.append(kp_old[i.queryIdx].pt)
             #
-            # pts_new.append([kp_new[i.trainIdx].pt[0], kp_new[i.trainIdx].pt[1]])
-            # pts_old.append([kp_old[i.queryIdx].pt[0], kp_old[i.queryIdx].pt[1]])
+            pts_new.append([kp_new[i.trainIdx].pt[0], kp_new[i.trainIdx].pt[1]])
+            pts_old.append([kp_old[i.queryIdx].pt[0], kp_old[i.queryIdx].pt[1]])
+    pts_new = np.array(pts_new)
+    pts_old = np.array(pts_old)
     return pts_new, pts_old
