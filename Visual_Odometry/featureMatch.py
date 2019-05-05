@@ -49,7 +49,7 @@ def orb(new_img, old_img):
     # Sort them in the order of their distance.
     matches = sorted(matches, key = lambda x:x.distance)
     # Draw first 10 matches.
-    # img3 = cv2.drawMatches(new_img,kp_new,old_img,kp_old,matches[:40],None,flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
+    # img3 = cv2.drawMatches(new_img,kp_new,old_img,kp_old,matches,None,flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
     # cv2.imshow('Matches', img3)
     # cv2.waitKey(0)
     pts_new, pts_old = getMatchPoints(kp_old, kp_new, matches)
@@ -62,4 +62,7 @@ def getMatchPoints(kp_old, kp_new, matches):
         if i.trainIdx < len(kp_new) and i.queryIdx < len(kp_old):
             pts_new.append(kp_new[i.trainIdx].pt)
             pts_old.append(kp_old[i.queryIdx].pt)
+            #
+            # pts_new.append([kp_new[i.trainIdx].pt[0], kp_new[i.trainIdx].pt[1]])
+            # pts_old.append([kp_old[i.queryIdx].pt[0], kp_old[i.queryIdx].pt[1]])
     return pts_new, pts_old
