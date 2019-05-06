@@ -49,22 +49,53 @@ def orb(new_img, old_img):
     # Sort them in the order of their distance.
     matches = sorted(matches, key = lambda x:x.distance)
     # Draw first 10 matches.
-    # img3 = cv2.drawMatches(new_img,kp_new,old_img,kp_old,matches,None,flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
-    # cv2.imshow('Matches', img3)
-    # cv2.waitKey(0)
-    pts_new, pts_old = getMatchPoints(kp_old, kp_new, matches)
+    matches = matches[:40]
+    print('kp_old:', len(kp_old))
+    print('kp_new:', len(kp_new))
+    print('matches:', len(matches))
+    
+    '''
+    img3 = cv2.drawMatches(new_img,kp_new,old_img,kp_old,matches,None,flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
+    cv2.imshow('Matches', img3)
+    cv2.waitKey(0)
+    '''
+    pts_new, pts_old = getMatchPoints(kp_new, kp_old, matches)
     return pts_new, pts_old
 
 
-def getMatchPoints(kp_old, kp_new, matches):
+def getMatchPoints(kp_new, kp_old, matches):
     pts_new, pts_old = list(),list()
+    list_kp1, list_kp2 = list(),list()
+    print('match:', len(matches))
     for i in matches:
+        img1_idx = i.queryIdx
+        img2_idx = i.trainIdx
+
+        # x - columns
+        # y - rows
+        # Get the coordinates
+        (x1, y1) = kp_new[img1_idx].pt
+        (x2, y2) = kp_old[img2_idx].pt
+
+        # Append to each list
+        list_kp1.append((x1, y1))
+        list_kp2.append((x2, y2))
+        '''
         if i.trainIdx < len(kp_new) and i.queryIdx < len(kp_old):
             # pts_new.append(kp_new[i.trainIdx].pt)
             # pts_old.append(kp_old[i.queryIdx].pt)
             #
             pts_new.append([kp_new[i.trainIdx].pt[0], kp_new[i.trainIdx].pt[1]])
             pts_old.append([kp_old[i.queryIdx].pt[0], kp_old[i.queryIdx].pt[1]])
+    print('len',len(pts_new))
+    dd
     pts_new = np.array(pts_new)
     pts_old = np.array(pts_old)
+
     return pts_new, pts_old
+
+    '''
+    list_kp1 = np.array(list_kp1)
+    list_kp2 = np.array(list_kp2)
+
+    return list_kp1, list_kp2
