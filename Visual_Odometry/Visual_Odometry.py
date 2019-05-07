@@ -56,7 +56,7 @@ def main():
 
         F, pts1, pts2 = ransac(pts_new, pts_old)
 #        F = computeFundamentalMatrix(pts_new[0:8,:], pts_old[0:8,:])
-        print('F:',F)
+#         print('F:',F)
         
         E = computeEssentialMatrix(F)
 #         print('E:', E)
@@ -68,11 +68,11 @@ def main():
 
         R_final, C_final = triangulation(C, R1, R2, pts1, pts2)
 #         R_final, C_final = triangulation(C, R1, R2,pts_new, pts_old)
-        print(C_final.T.shape)
+#         print(C_final.T.shape)
 #--------------------------------------------------------------------------------------------------
         H = np.matmul(H, computeH(R_final,C_final.T))
         pos = np.matmul(H,origin)
-        print(pos)
+#         print(pos)
         
         plt.plot(pos[0],pos[2],'-ro')
         '''

@@ -40,8 +40,8 @@ def computeFundamentalMatrix(pts_new, pts_old):
 
 #     F_hat = F_hat / np.linalg.norm(F_hat)
     F_hat = F_hat / F_hat[-1][-1]
-    if F_hat[-1][-1] < 0:
-        F_hat = -F_hat
+#     if F_hat[-1][-1] < 0:
+#         F_hat = -F_hat
     return F_hat
 
 
@@ -94,15 +94,17 @@ def ransac(pts_new,pts_old):
     for i in range(len(finalIdx)):
         inlinerP1.append(pts_new[finalIdx[i]])
         inlinerP2.append(pts_old[finalIdx[i]])
-    print(len(inlinerP1))
-    print(len(pts_new))
+#     print(len(inlinerP1))
+#     print(len(pts_new))
     inlinerP1 = np.array(inlinerP1)
     inlinerP2 = np.array(inlinerP2)
     # updating Fundamental matrix wrt to new points.
     F = computeFundamentalMatrix(inlinerP1, inlinerP2)
+    F = F / np.linalg.norm(F)
+    F = F/ F[-1][-1]
     # print(np.linalg.matrix_rank(F))
 #     F = np.matmul(np.matmul(newT.T,F),oldT)
-    print('F after',F/F[-1][-1])
+#     print('F after',F)
     
         # count = count + 1
     return F, inlinerP1, inlinerP2
@@ -117,8 +119,7 @@ def computeEssentialMatrix(F):
     s = np.array([[d[0],0,0],[0,d[1],0],[0,0,0]])
 #     s = np.array([[1,0,0],[0,1,0],[0,0,0]])
     E_hat = np.matmul(u,np.matmul(s,v))
-    print(E_hat)
-    ff
+#     print(E_hat)
     return E_hat
 
 def estimateCameraPose(E):

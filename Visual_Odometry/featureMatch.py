@@ -48,7 +48,7 @@ def orb(new_img, old_img):
     matches = bf.match(des_new,des_old)
     # Sort them in the order of their distance.
     matches = sorted(matches, key = lambda x:x.distance)
-    # Draw first 10 matches.
+    
     matches = matches[:50]   
     '''
     img3 = cv2.drawMatches(new_img,kp_new,old_img,kp_old,matches,None,flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
