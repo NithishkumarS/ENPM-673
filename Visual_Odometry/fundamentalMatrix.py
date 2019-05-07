@@ -21,8 +21,6 @@ def normalize(points):
 def computeFundamentalMatrix(pts_new, pts_old):
     A =list()
     n = 1
-#     pts_new, oldT = normalize(pts_new)
-#     pts_old, newT = normalize(pts_old)
     for i in range(len(pts_new)):
         A.append([pts_new[i][0]*pts_old[i][0] , pts_new[i][0]*pts_old[i][1], pts_new[i][0], pts_new[i][1]*pts_old[i][0], pts_new[i][1]*pts_old[i][1], pts_old[i][1], pts_old[i][0] , pts_old[i][1], 1 ])
     A = np.array(A)
@@ -33,16 +31,14 @@ def computeFundamentalMatrix(pts_new, pts_old):
     # F = F / magF
     # print(F)
     FU , Fs, FV = np.linalg.svd(F)
-    # print(Fs)
-    # Fs[-1] = 0
     
 #     Fs = np.array([[(Fs[0]+Fs[2])/2,0,0],[0,(Fs[1]+Fs[2])/2,0],[0,0,0]])
     
     Fs = np.array([[Fs[0],0,0],[0,Fs[1],0],[0,0,0]])
     
     F_hat = np.matmul(np.matmul(FU,Fs),FV)
-#     F_hat = np.matmul(np.matmul(newT.T,F_hat),oldT)
-    F_hat = F_hat / np.linalg.norm(F_hat)
+
+#     F_hat = F_hat / np.linalg.norm(F_hat)
     F_hat = F_hat / F_hat[-1][-1]
     if F_hat[-1][-1] < 0:
         F_hat = -F_hat
@@ -52,6 +48,9 @@ def computeFundamentalMatrix(pts_new, pts_old):
 def ransac(pts_new,pts_old):
     pts_new = np.hstack((pts_new, np.ones((len(pts_new), 1))))
     pts_old = np.hstack((pts_old, np.ones((len(pts_old), 1))))
+#     pts_new, oldT = normalize(pts_new)
+#     pts_old, newT = normalize(pts_old)
+  
     n_iters = 1000
     count = 0
     n = 0
@@ -102,7 +101,9 @@ def ransac(pts_new,pts_old):
     # updating Fundamental matrix wrt to new points.
     F = computeFundamentalMatrix(inlinerP1, inlinerP2)
     # print(np.linalg.matrix_rank(F))
-
+#     F = np.matmul(np.matmul(newT.T,F),oldT)
+    print('F after',F/F[-1][-1])
+    
         # count = count + 1
     return F, inlinerP1, inlinerP2
 
@@ -114,9 +115,10 @@ def computeEssentialMatrix(F):
     d[-1] = 0
     #    makes singular values 1
     s = np.array([[d[0],0,0],[0,d[1],0],[0,0,0]])
+#     s = np.array([[1,0,0],[0,1,0],[0,0,0]])
     E_hat = np.matmul(u,np.matmul(s,v))
-    
-    # print(E)
+    print(E_hat)
+    ff
     return E_hat
 
 def estimateCameraPose(E):

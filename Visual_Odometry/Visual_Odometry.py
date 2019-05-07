@@ -49,13 +49,14 @@ def main():
     origin[3][0]= 1
     Rc = np.eye(3)
     plt.ion()
-    Tc = np.zeros((3,1))
+    Tc = np.zeros((3,1))    
     while frameCount < len(imageList):
         new_img = cv2.imread(imageList[frameCount])
         pts_new, pts_old = orb(new_img, old_img)
-#         F, pts1, pts2 = ransac(pts_new, pts_old)
-        F = computeFundamentalMatrix(pts_new[0:8,:], pts_old[0:8,:])
-#         print('F:',F)
+
+        F, pts1, pts2 = ransac(pts_new, pts_old)
+#        F = computeFundamentalMatrix(pts_new[0:8,:], pts_old[0:8,:])
+        print('F:',F)
         
         E = computeEssentialMatrix(F)
 #         print('E:', E)
@@ -65,10 +66,10 @@ def main():
 #         print('R1:',R1)
 #         print('R2:',R2)
 
-#         R_final, C_final = triangulation(C, R1, R2, pts1, pts2)
-        R_final, C_final = triangulation(C, R1, R2,pts_new, pts_old)
+        R_final, C_final = triangulation(C, R1, R2, pts1, pts2)
+#         R_final, C_final = triangulation(C, R1, R2,pts_new, pts_old)
         print(C_final.T.shape)
-        
+#--------------------------------------------------------------------------------------------------
         H = np.matmul(H, computeH(R_final,C_final.T))
         pos = np.matmul(H,origin)
         print(pos)
@@ -84,6 +85,7 @@ def main():
 #         cv2.imshow('frame', new_img)
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
+        print(frameCount)
         frameCount = frameCount + 1
     plt.show()
     cv2.destroyAllWindows()
