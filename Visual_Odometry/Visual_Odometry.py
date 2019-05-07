@@ -43,21 +43,47 @@ def main():
     """ Main entry point of the app """
     frameCount = 20
     imageList = loadImages()
-    old_img = cv2.imread(imageList[19])
+    
     H = np.eye(4)
+    feature_detector = cv2.FastFeatureDetector_create(threshold=25, nonmaxSuppression=True)
+
+    lk_params = dict(winSize=(21, 21),
+                     criteria=(cv2.TERM_CRITERIA_EPS |
+                     cv2.TERM_CRITERIA_COUNT, 30, 0.03))
+
     origin = np.zeros((4,1))
     origin[3][0]= 1
     Rc = np.eye(3)
     plt.ion()
     Tc = np.zeros((3,1))    
-    while frameCount < len(imageList):
-        new_img = cv2.imread(imageList[frameCount])
-        pts_new, pts_old = orb(new_img, old_img)
+    old_img = cv2.imread(imageList[frameCount-1])
+    old_img = cv2.cvtColor(old_img,cv2.COLOR_BGR2GRAY)
+    old_img = cv2.equalizeHist(old_img)
+    old_img = cv2.GaussianBlur(old_img,(3,3),0)
 
+    while frameCount < len(imageList):
+        prev_keypoint = feature_detector.detect(old_img, None)
+        new_img = cv2.imread(imageList[frameCount])
+        new_img = cv2.cvtColor(new_img,cv2.COLOR_BGR2GRAY)
+        new_img = cv2.equalizeHist(new_img)
+        new_img = cv2.GaussianBlur(new_img,(3,3),0)
+        
+        temp = list()
+        for i in range(len(prev_keypoint)):
+            temp.append([prev_keypoint[i].pt[0], prev_keypoint[i].pt[1]])
+        pts_old = np.array(temp, dtype=np.float32)
+        pts_new, st, err = cv2.calcOpticalFlowPyrLK(old_img, new_img, pts_old, None, **lk_params)
+        print(st.shape)
+        st = st.reshape((st.shape[0]))
+        pts_new = pts_new[st>0]
+        pts_old = pts_old[st>0]
+        print('pts_new:', len(pts_new))
+        
         F, pts1, pts2 = ransac(pts_new, pts_old)
 #        F = computeFundamentalMatrix(pts_new[0:8,:], pts_old[0:8,:])
 #         print('F:',F)
-        
+        print(len(pts1))
+        dd
         E = computeEssentialMatrix(F)
 #         print('E:', E)
         
