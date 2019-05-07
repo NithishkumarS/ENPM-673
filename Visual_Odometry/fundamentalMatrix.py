@@ -1,8 +1,10 @@
 import numpy as np
 
-def normalize(point):
-    point = point.copy()
+def normalize(points):
+    point = points.copy()
+#     print('shape:',point.T)
     mean = np.mean(point, axis=0)
+#     print('mean:',mean.shape)
     pointCen = point - mean
 
     meanDist = np.mean(np.sqrt(np.sum(pointCen**2, axis=1)))
@@ -19,8 +21,8 @@ def normalize(point):
 def computeFundamentalMatrix(pts_new, pts_old):
     A =list()
     n = 1
-    pts_new, oldT = normalize(pts_new)
-    pts_old, newT = normalize(pts_old)
+#     pts_new, oldT = normalize(pts_new)
+#     pts_old, newT = normalize(pts_old)
     for i in range(len(pts_new)):
         A.append([pts_new[i][0]*pts_old[i][0] , pts_new[i][0]*pts_old[i][1], pts_new[i][0], pts_new[i][1]*pts_old[i][0], pts_new[i][1]*pts_old[i][1], pts_old[i][1], pts_old[i][0] , pts_old[i][1], 1 ])
     A = np.array(A)
@@ -33,9 +35,13 @@ def computeFundamentalMatrix(pts_new, pts_old):
     FU , Fs, FV = np.linalg.svd(F)
     # print(Fs)
     # Fs[-1] = 0
-    Fs = np.array([[(Fs[0]+Fs[2])/2,0,0],[0,(Fs[1]+Fs[2])/2,0],[0,0,0]])
+    
+#     Fs = np.array([[(Fs[0]+Fs[2])/2,0,0],[0,(Fs[1]+Fs[2])/2,0],[0,0,0]])
+    
+    Fs = np.array([[Fs[0],0,0],[0,Fs[1],0],[0,0,0]])
+    
     F_hat = np.matmul(np.matmul(FU,Fs),FV)
-    F_hat = np.matmul(np.matmul(newT.T,F_hat),oldT)
+#     F_hat = np.matmul(np.matmul(newT.T,F_hat),oldT)
     F_hat = F_hat / np.linalg.norm(F_hat)
     F_hat = F_hat / F_hat[-1][-1]
     if F_hat[-1][-1] < 0:
@@ -73,7 +79,7 @@ def ransac(pts_new,pts_old):
         for i in range(len(pts_new)):
             x_new = np.array([pts_new[i][0], pts_new[i][1], 1])
             x_old = np.array([pts_old[i][0], pts_old[i][1], 1])
-            if abs(x_old @ F @ x_new.T) < thres:
+            if abs(np.matmul(x_old,np.matmul(F,x_new.T)) ) < thres:
                 inlinerIdx.append(i)
 
         if n < len(inlinerIdx):
@@ -104,8 +110,14 @@ def computeEssentialMatrix(F):
     K = np.array([ [964.828979, 0,643.788025],[0,964.828979,484.40799 ],[0 ,0, 1] ])
     E = np.matmul(np.matmul(K.T ,F ),K)
     r = np.linalg.matrix_rank(E)
+    u, d, v = np.linalg.svd(E)
+    d[-1] = 0
+    #    makes singular values 1
+    s = np.array([[d[0],0,0],[0,d[1],0],[0,0,0]])
+    E_hat = np.matmul(u,np.matmul(s,v))
+    
     # print(E)
-    return E
+    return E_hat
 
 def estimateCameraPose(E):
     W = np.zeros((3,3))

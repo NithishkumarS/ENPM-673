@@ -1,6 +1,6 @@
 import numpy as np
 
-def triangulation(C0, R1, R2, pts2, pts1):
+def triangulation(C0, R1, R2, pts1, pts2):
     K = np.array([ [964.828979, 0,643.788025],[0,964.828979,484.40799 ],[0 ,0, 1] ])
     C, R = combineRC(C0, R1, R2)
     P1 = np.matmul(K,np.hstack((np.eye(3),np.zeros((3,1)))))
