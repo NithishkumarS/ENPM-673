@@ -18,6 +18,10 @@ from fundamentalMatrix import computeFundamentalMatrix, ransac, normalize
 from fundamentalMatrix import computeEssentialMatrix, estimateCameraPose
 from triangulation import triangulation
 
+def masker(img):
+    img[int(img.shape[0]*3/4):,:] = 0
+    return img
+
 def loadImages():
     imageList = []
     for file in os.listdir("Oxford_dataset/stereo/Color"):
@@ -68,16 +72,17 @@ def main():
     # print(origin)
 
     while frameCount < len(imageList):
-        old_img = cv2.imread(imageList[frameCount-1])
+        old_img = cv2.imread(imageList[frameCount-5])
         old_img = cv2.cvtColor(old_img,cv2.COLOR_BGR2GRAY)
         old_img = cv2.equalizeHist(old_img)
         old_img = cv2.GaussianBlur(old_img,(3,3),0)
+        old_img = masker(old_img)
         prev_keypoint = feature_detector.detect(old_img, None)
         new_img = cv2.imread(imageList[frameCount])
         new_img = cv2.cvtColor(new_img,cv2.COLOR_BGR2GRAY)
         new_img = cv2.equalizeHist(new_img)
         new_img = cv2.GaussianBlur(new_img,(3,3),0)
-
+        new_img = masker(new_img)
 
         temp = list()
         for i in range(len(prev_keypoint)):
@@ -122,7 +127,7 @@ def main():
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
         old_img = new_img.copy()
-        frameCount = frameCount + 1
+        frameCount = frameCount + 5
         print(frameCount)
         # old_img = new_img.copy()
         # p0 = good_new.reshape(-1,1,2)
