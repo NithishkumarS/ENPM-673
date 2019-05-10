@@ -1,6 +1,7 @@
 Input Sequences/
+Oxford_dataset/
 .DS_Store
-__pychache__/
+__pycache__/
 *.pyc
 **/*.avi
 **/*.mp4
