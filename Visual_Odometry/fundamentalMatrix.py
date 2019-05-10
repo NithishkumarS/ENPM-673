@@ -21,6 +21,8 @@ def normalize(points):
 def computeFundamentalMatrix(pts_new, pts_old):
     A =list()
     n = 1
+    pts_new, newT = normalize(pts_new)
+    pts_old, oldT = normalize(pts_old)
     for i in range(len(pts_new)):
         A.append([pts_new[i][0]*pts_old[i][0] , pts_new[i][0]*pts_old[i][1], pts_new[i][0], pts_new[i][1]*pts_old[i][0], pts_new[i][1]*pts_old[i][1], pts_old[i][1], pts_old[i][0] , pts_old[i][1], 1 ])
     A = np.array(A)
@@ -31,30 +33,42 @@ def computeFundamentalMatrix(pts_new, pts_old):
     # F = F / magF
     # print(F)
     FU , Fs, FV = np.linalg.svd(F)
-    
-#     Fs = np.array([[(Fs[0]+Fs[2])/2,0,0],[0,(Fs[1]+Fs[2])/2,0],[0,0,0]])
-    
-    Fs = np.array([[Fs[0],0,0],[0,Fs[1],0],[0,0,0]])
-    
-    F_hat = np.matmul(np.matmul(FU,Fs),FV)
 
-#     F_hat = F_hat / np.linalg.norm(F_hat)
-    F_hat = F_hat / F_hat[-1][-1]
-#     if F_hat[-1][-1] < 0:
-#         F_hat = -F_hat
+    # Fs = np.array([[(Fs[0]+Fs[2])/2,0,0],[0,(Fs[1]+Fs[2])/2,0],[0,0,0]])
+
+    Fs = np.array([[1,0,0],[0,1,0],[0,0,0]])
+
+    F_hat = np.matmul(np.matmul(FU,Fs),FV)
+    F_hat = np.matmul(oldT.T, np.matmul(F_hat, newT))
+    F_hat = F_hat / np.linalg.norm(F_hat)
+    F_hat[0][1] = -F_hat[0][1]
+    F_hat[1][0] = -F_hat[1][0]
+    F_hat[1][2] = -F_hat[1][2]
+    F_hat[2][1] = -F_hat[2][1]
+    # F_hat = F_hat / F_hat[-1][-1]
+    if F_hat[-1][-1] < 0:
+        F_hat = -F_hat
     return F_hat
 
 
 def ransac(pts_new,pts_old):
     pts_new = np.hstack((pts_new, np.ones((len(pts_new), 1))))
     pts_old = np.hstack((pts_old, np.ones((len(pts_old), 1))))
-#     pts_new, oldT = normalize(pts_new)
-#     pts_old, newT = normalize(pts_old)
-  
-    n_iters = 1000
+    # pts_new, oldT = normalize(pts_new)
+    # pts_old, newT = normalize(pts_old)
+
+    # converting points to 8x8 grid
+    # grid = dict()
+    # tempList = list()
+    # for i in range(8):
+    #     for j in range(8):
+    #         tempList.append([])
+    #     grid[(i,j)] =
+
+    n_iters = 10000
     count = 0
     n = 0
-    thres = 0.5
+    thres = 5
     # ratio =
     np.random.seed(0)
     while count < n_iters: #count < n_iters:
@@ -73,12 +87,27 @@ def ransac(pts_new,pts_old):
 
         # Compute fundamental Matrix
         F = computeFundamentalMatrix(ranP1, ranP2)
+        # F = np.matmul(np.matmul(newT.T,F),oldT)
+        # if F[-1][-1]==0:
+        #     continue
 
+        # F = F / F[-1][-1]
         # Adding Inliners for random index to
         for i in range(len(pts_new)):
             x_new = np.array([pts_new[i][0], pts_new[i][1], 1])
             x_old = np.array([pts_old[i][0], pts_old[i][1], 1])
+
             if abs(np.matmul(x_old,np.matmul(F,x_new.T)) ) < thres:
+            #
+            # ep1 = np.matmul(F, x_old.T)
+            # ep2 = np.matmul(F.T, x_new.T)
+            # e_num = np.square(np.sum(np.matmul(np.matmul(x_new,F), x_old), axis=0))
+            # e_den = np.square(np.sum(ep1[1:2])).T + np.square(np.sum(ep2[1:2]).T)
+            # e = e_num/e_den
+            #
+            # # e = sum(newPoints*F.*oldPoints,2).^2./(sum(ep1(1:2,:).^2)'+sum(ep2(1:2,:).^2)')
+            # if e < 5: # thres
+            #     # print(e)
                 inlinerIdx.append(i)
 
         if n < len(inlinerIdx):
@@ -100,25 +129,32 @@ def ransac(pts_new,pts_old):
     inlinerP2 = np.array(inlinerP2)
     # updating Fundamental matrix wrt to new points.
     F = computeFundamentalMatrix(inlinerP1, inlinerP2)
-    F = F / np.linalg.norm(F)
+    # F = F / np.linalg.norm(F)
     F = F/ F[-1][-1]
     # print(np.linalg.matrix_rank(F))
-#     F = np.matmul(np.matmul(newT.T,F),oldT)
+    # F = np.matmul(np.matmul(newT.T,F),oldT)
+    # F = F / F[-1][-1]
 #     print('F after',F)
-    
+
         # count = count + 1
     return F, inlinerP1, inlinerP2
 
 def computeEssentialMatrix(F):
+    # print('F',F)
     K = np.array([ [964.828979, 0,643.788025],[0,964.828979,484.40799 ],[0 ,0, 1] ])
     E = np.matmul(np.matmul(K.T ,F ),K)
-    r = np.linalg.matrix_rank(E)
+    # r = np.linalg.matrix_rank(E)
     u, d, v = np.linalg.svd(E)
-    d[-1] = 0
+    print('\n-----------\n',d)
+    # d[-1] = 0
     #    makes singular values 1
-    s = np.array([[d[0],0,0],[0,d[1],0],[0,0,0]])
-#     s = np.array([[1,0,0],[0,1,0],[0,0,0]])
+    #s = np.array([[d[0],0,0],[0,d[1],0],[0,0,0]])
+    s = np.array([[1,0,0],[0,1,0],[0,0,0]])
     E_hat = np.matmul(u,np.matmul(s,v))
+    E_hat[0][1] = -E_hat[0][1]
+    E_hat[1][0] = -E_hat[1][0]
+    E_hat[1][2] = -E_hat[1][2]
+    E_hat[2][1] = -E_hat[2][1]
 #     print(E_hat)
     return E_hat
 
