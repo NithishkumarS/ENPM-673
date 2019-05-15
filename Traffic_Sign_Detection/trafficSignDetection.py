@@ -26,6 +26,9 @@ def loadImages():
     for i in range(len(imageList)):
         imageList[i] = "TSR/input/" + str(imageList[i]) + ".jpg"
     return imageList
+def denoise(new_img):
+    dst = cv2.fastNlMeansDenoisingColored(new_img,None,10,10,7,21)
+    return dst
 
 def main():
     """ Main entry point of the app """
@@ -34,6 +37,7 @@ def main():
     while frameCount < len(imageList):
         new_img = cv2.imread(imageList[frameCount])
         cv2.imshow('frame', new_img)
+        new_img = denoise(new_img)
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
         frameCount = frameCount + 1
