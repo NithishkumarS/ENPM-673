@@ -56,9 +56,24 @@ def boundingBox(image):
     im2, contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     for cnt in contours:
         x,y,w,h = cv2.boundingRect(cnt)
-        cv2.rectangle(mask_blue,(x,y),(x+w,y+h),(0,255,0),2)
+        if h >= 0.9*w and w*h > 100 and (h < 2.5*w) and w*h < 30000:
+            print('height, width:', h,w)
+            print("area", w*h)
+            cv2.rectangle(image,(x,y),(x+w,y+h),(255,0,0),2)
+
+    im = cv2.cvtColor(mask_red, cv2.COLOR_BGR2GRAY)
+    ret, thresh = cv2.threshold(im, 5, 255, 0)
+    im2, contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    for cnt in contours:
+        x,y,w,h = cv2.boundingRect(cnt)
+        if h >= 0.9*w and w*h > 100 and (h < 2.5*w) and w*h < 30000:
+            print('height, width:', h,w)
+            print("area", w*h)
+            cv2.rectangle(image,(x,y),(x+w,y+h),(0,0,255),2)
+
+
     # cv2.drawContours(mask_blue, contours, -1, (0,255,0), 3)
-    cv2.imshow('mask_blue', mask_blue)
+    cv2.imshow('mask_blue', image)
     # cv2.imshow('mask_red', mask_red)
     cv2.waitKey(0)
     return 0
