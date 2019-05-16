@@ -13,6 +13,7 @@ try:
 except:
     pass
 import cv2
+from colorSegmentation import colorSegmentation
 
 def last_4chars(x):
     return(x[-5:])
@@ -26,6 +27,7 @@ def loadImages():
     for i in range(len(imageList)):
         imageList[i] = "TSR/input/" + str(imageList[i]) + ".jpg"
     return imageList
+
 def denoise(new_img):
     dst = cv2.fastNlMeansDenoisingColored(new_img,None,10,10,7,21)
     return dst
@@ -36,11 +38,14 @@ def main():
     imageList = loadImages()
     while frameCount < len(imageList):
         new_img = cv2.imread(imageList[frameCount])
+        # new_img = denoise(new_img)
+        res = colorSegmentation(new_img)
         cv2.imshow('frame', new_img)
-        new_img = denoise(new_img)
-        if cv2.waitKey(1) & 0xFF == ord('q'):
+        cv2.imshow('segmented', res)
+        if cv2.waitKey(0) & 0xFF == ord('q'):
             break
         frameCount = frameCount + 1
+        print(frameCount)
     cv2.destroyAllWindows()
 
 if __name__ == "__main__":
