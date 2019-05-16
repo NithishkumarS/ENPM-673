@@ -43,4 +43,22 @@ def colorSegmentation(image):
     # total mask
     total_mask = cv2.bitwise_or(blue_mask, red_mask)
 
-    return total_mask
+    return blue_mask, red_mask
+
+def boundingBox(image):
+    mask_blue, mask_red = colorSegmentation(image)
+    # kernel = np.ones((3,3),np.uint8)
+    # erosion = cv2.erode(mask_blue,kernel,iterations = 1)
+    # erosion = cv2.Canny(erosion,100,200)
+    # blackhat = cv2.morphologyEx(erosion, cv2.MORPH_CLOSE, kernel)
+    im = cv2.cvtColor(mask_blue, cv2.COLOR_BGR2GRAY)
+    ret, thresh = cv2.threshold(im, 5, 255, 0)
+    im2, contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    for cnt in contours:
+        x,y,w,h = cv2.boundingRect(cnt)
+        cv2.rectangle(mask_blue,(x,y),(x+w,y+h),(0,255,0),2)
+    # cv2.drawContours(mask_blue, contours, -1, (0,255,0), 3)
+    cv2.imshow('mask_blue', mask_blue)
+    # cv2.imshow('mask_red', mask_red)
+    cv2.waitKey(0)
+    return 0

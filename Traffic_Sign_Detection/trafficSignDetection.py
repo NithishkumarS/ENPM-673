@@ -13,19 +13,19 @@ try:
 except:
     pass
 import cv2
-from colorSegmentation import colorSegmentation
+from colorSegmentation import *
 
 def last_4chars(x):
     return(x[-5:])
 
 def loadImages():
     imageList = []
-    for file in os.listdir("TSR/input/"):
+    for file in os.listdir("TSR/ProcessedInput/"):
         filename, basename = os.path.splitext(file)
         imageList.append(filename)
     imageList = sorted(imageList, key = last_4chars)
     for i in range(len(imageList)):
-        imageList[i] = "TSR/input/" + str(imageList[i]) + ".jpg"
+        imageList[i] = "TSR/ProcessedInput/" + str(imageList[i]) + ".jpg"
     return imageList
 
 def denoise(new_img):
@@ -39,9 +39,9 @@ def main():
     while frameCount < len(imageList):
         new_img = cv2.imread(imageList[frameCount])
         # new_img = denoise(new_img)
-        res = colorSegmentation(new_img)
+        boundingBox(new_img)
         cv2.imshow('frame', new_img)
-        cv2.imshow('segmented', res)
+        # cv2.imshow('segmented', res)
         if cv2.waitKey(0) & 0xFF == ord('q'):
             break
         frameCount = frameCount + 1
