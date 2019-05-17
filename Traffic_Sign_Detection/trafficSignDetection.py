@@ -28,9 +28,6 @@ def loadImages():
         imageList[i] = "TSR/ProcessedInput/" + str(imageList[i]) + ".jpg"
     return imageList
 
-def denoise(new_img):
-    dst = cv2.fastNlMeansDenoisingColored(new_img,None,10,10,7,21)
-    return dst
 
 def main():
     """ Main entry point of the app """
