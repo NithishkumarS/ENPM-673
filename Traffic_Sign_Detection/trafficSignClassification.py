@@ -17,7 +17,7 @@ import cv2
 from boundingBox import *
 
 def last_4chars(x):
-    return(x[-5:] )
+    return(x[-5:])
 
 def getFolderList(fol_str):
     folderList = []
@@ -73,7 +73,6 @@ def getHOG():
     return hog
 
 def train():
-
     hog = getHOG()
     dataset = []
     datalabels = []
@@ -87,10 +86,11 @@ def train():
         classId = prop[0][-1]
         while imageCount < len(imageList):
             new_img = cv2.imread(folderList[folderCount] + prop[imageCount][0])
-            new_img = resize(new_img, prop[imageCount])
+            new_img = resize(new_img, None)
             des = hog.compute(new_img)
             dataset.append(des)
             datalabels.append(int(classId))
+            # print(int(classId))
             cv2.imshow('frame', new_img)
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
@@ -102,66 +102,58 @@ def train():
 
     # Set up SVM for OpenCV 3
     svm = cv2.ml.SVM_create()
+
     # Set SVM type
     svm.setType(cv2.ml.SVM_C_SVC)
+
     # Set SVM Kernel to Radial Basis Function (RBF)
-    svm.setKernel(cv2.ml.SVM_RBF)
+    svm.setKernel(cv2.ml.SVM_POLY)
+
+    # det degree
+    svm.setDegree(2.5)
+
     # Set parameter C
-    svm.setC(12.5)
+    svm.setC(2.5)
+
     # Set parameter Gamma
-    svm.setGamma(0.50625)
+    svm.setGamma(0.030625)
 
     # Train SVM on training data
     dataset = np.squeeze(np.array(dataset))
     print(dataset.shape)
     datalabels = np.array(datalabels)
     svm.train(dataset, cv2.ml.ROW_SAMPLE, datalabels)
+
     # Save trained model
     svm.save("svm_model.yml")
-    return hog, svm
 
-def test():
+    # cross validation
+
+    print("Training Done")
+
+    return svm
+
+def test(svm):
 
     hog = getHOG()
-    # Set up SVM for OpenCV 3
-    svm = cv2.ml.SVM_create()
-    svm.load("svm_model.yml")
-    folderList = getFolderList("Training")
-    imageList, prop = loadImages(folderList[0])
-    print(prop[1][0])
-    im = cv2.imread(folderList[0] + prop[1][0])
-    cv2.imshow('frame', im)
-    cv2.waitKey(1)
-    im = resize(im, prop[1][:])
-    des = hog.compute(im)
-    print(des)
-    des = np.array(des.T)
-    print(des)
-    print(des.shape)
-    testResponse = svm.predict(des)[1].ravel()
-    print(testResponse)
-    #
-    # im = cv2.imread('TSR/Testing/00000/00017_00000.ppm')
-    # im = resize(im, None)
-    # des = hog.compute(im)
-    # des = np.array(des.T)
-    # print(des.shape)
-    # testResponse = svm.predict(des)[1].ravel()
-    # print(testResponse)
-    '''
     dataset = []
     datalabels = []
     folderCount = 0
     folderList = getFolderList("Testing")
     dataCount = 0
-
-    while folderCount < 1:#len(folderList):
+    while folderCount < len(folderList):
         imageCount = 0
         imageList, prop = loadImages(folderList[folderCount])
+        if not imageList:
+            folderCount = folderCount + 1
+            continue
+        # print(prop)
+        print(folderList[folderCount])
         classId = prop[0][-1]
+
         while imageCount < len(imageList):
             new_img = cv2.imread(folderList[folderCount] + prop[imageCount][0])
-            new_img = resize(new_img, prop[imageCount])
+            new_img = resize(new_img, None)
             des = hog.compute(new_img)
             dataset.append(des)
             datalabels.append(int(classId))
@@ -173,16 +165,28 @@ def test():
             # print(imageCount)
         folderCount = folderCount + 1
         cv2.destroyAllWindows()
-
-    # Train SVM on training data
     dataset = np.squeeze(np.array(dataset))
-    '''
+    testResponse = svm.predict(dataset)[1].ravel()
+    count = 0
+    for i in range(len(testResponse)):
+        if (testResponse[i] - datalabels[i]) != 0.0:
+            print('Test Value:', testResponse[i])
+            print('Actual Value:', datalabels[i])
+            print(i)
+            count = count + 1
+
+
+    print(np.array(testResponse))
+    print(datalabels)
+    print('Percentage: ', float(len(datalabels)-count)/(len(datalabels))*100)
+    print(np.unique(testResponse))
     return 0
 
 def main():
     """ Main entry point of the app """
-    # hog, svm = train()
-    test()
+    svm = train()
+    test(svm)
+    # test()
 
 if __name__ == "__main__":
     main()
