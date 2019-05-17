@@ -17,7 +17,7 @@ import cv2
 from boundingBox import *
 
 def last_4chars(x):
-    return(x[-5:])
+    return(x[-5:] )
 
 def getFolderList(fol_str):
     folderList = []
