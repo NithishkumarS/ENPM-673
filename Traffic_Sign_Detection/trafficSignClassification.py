@@ -169,7 +169,7 @@ def train():
     folderList = getFolderList("Training")
     dataCount = 0
     
-    while folderCount < 5:#len(folderList):
+    while folderCount < len(folderList):
         imageCount = 0
         imageList, prop = loadImages(folderList[folderCount])
         classId = prop[0][-1]
@@ -214,32 +214,10 @@ def train():
     print(dataset.shape)
     datalabels = np.array(datalabels)
     svm.train(dataset, cv2.ml.ROW_SAMPLE, datalabels)
-    
-    '''
-    #Visualize model
-    x_min, x_max = dataset[:, 0].min() - 1, dataset[:, 0].max() + 1
-    y_min, y_max = datalabels[:, 1].min() - 1, datalabels[:, 1].max() + 1
-    h = (x_max / x_min)/100
-    xx, yy = np.meshgrid(np.arange(x_min, x_max, h),
-     np.arange(y_min, y_max, h))
-    
-    plt.subplot(1, 1, 1)
-    Z = svm.predict(np.c_[xx.ravel(), yy.ravel()])
-    Z = Z.reshape(xx.shape)
-    plt.contourf(xx, yy, Z, cmap=plt.cm.Paired, alpha=0.8)
-    
-    plt.scatter(dataset[:, 0], dataset[:, 1], c=datalabels, cmap=plt.cm.Paired)
-    plt.xlabel('Sepal length')
-    plt.ylabel('Sepal width')
-    plt.xlim(xx.min(), xx.max())
-    plt.show()
-    '''
 
     # Save trained model
-    svm.save("svm_model.yml")
-
+    svm.save("Models/svm.dat")
     print("Training Done")
-
     return svm
 
 
@@ -247,7 +225,7 @@ def test(svm):
     hog = getHOG()
     dataset = []
     datalabels = []
-    folderCount = 5
+    folderCount = 0
     folderList = getFolderList("Testing")
     dataCount = 0
     imageCount = 0
@@ -277,7 +255,7 @@ def test(svm):
             des = hog.compute(new_img)
 
             dataset.append(des)
-            datalabels.append(int(1))
+            datalabels.append(int(classId))
             cv2.imshow('frame', new_img)
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
@@ -304,15 +282,6 @@ def test(svm):
     print('unique responses: ',np.unique(testResponse))
     return percentage
 
-
-def saveModels():
-    svm = train_traffic_signs(0)
-    test(svm)
-    print('done with 1:::::::::::::::::::::::::')
-    svm.save('svm.dat')
-    svm2 = cv2.ml.SVM_load('svm.dat')
-    test(svm2)
-
 def main():
     """ Main entry point of the app """
     '''
@@ -334,7 +303,29 @@ def main():
     cv2.imshow('img', img)
     cv2.waitKey(0)
     '''
-    svm = train_traffic_signs('blueSVM')
+#     svm = train_traffic_signs('blueSVM')
+    svm = train()
     res = test(svm)
 if __name__ == "__main__":
     main()
+    
+    
+    '''
+    #Visualize model
+    x_min, x_max = dataset[:, 0].min() - 1, dataset[:, 0].max() + 1
+    y_min, y_max = datalabels[:, 1].min() - 1, datalabels[:, 1].max() + 1
+    h = (x_max / x_min)/100
+    xx, yy = np.meshgrid(np.arange(x_min, x_max, h),
+     np.arange(y_min, y_max, h))
+    
+    plt.subplot(1, 1, 1)
+    Z = svm.predict(np.c_[xx.ravel(), yy.ravel()])
+    Z = Z.reshape(xx.shape)
+    plt.contourf(xx, yy, Z, cmap=plt.cm.Paired, alpha=0.8)
+    
+    plt.scatter(dataset[:, 0], dataset[:, 1], c=datalabels, cmap=plt.cm.Paired)
+    plt.xlabel('Sepal length')
+    plt.ylabel('Sepal width')
+    plt.xlim(xx.min(), xx.max())
+    plt.show()
+    '''
