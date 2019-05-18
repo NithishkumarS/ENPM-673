@@ -133,6 +133,21 @@ def train():
 
     return svm
 
+def validateBox(image, svm):
+    img = np.copy(image)
+    width = 64
+    height = 64
+    dim = (width, height)
+    hog = getHOG()
+    
+    resized_img = cv2.resize(img, dim, interpolation = cv2.INTER_AREA) 
+    des = hog.compute(resized_img)
+    dataset = np.squeeze(np.array(des))
+    testResponse = svm.predict(dataset)[1].ravel()
+    print('respose', testResponse)
+
+#     return points
+
 def test(svm):
 
     hog = getHOG()
@@ -185,7 +200,9 @@ def test(svm):
 def main():
     """ Main entry point of the app """
     svm = train()
-    test(svm)
+    image = cv2.imread('TSR/Testing/00001/00252_00000.ppm')
+    validateBox(image, svm)
+#     test(svm)
     # test()
 
 if __name__ == "__main__":
