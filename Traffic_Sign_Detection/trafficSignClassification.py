@@ -81,7 +81,7 @@ def train_traffic_signs():
     folderCount = 0
     folderList = getFolderList("Training")
     dataCount = 0
-    while folderCount < 5:#len(folderList):
+    while folderCount < 1:#len(folderList):
         imageCount = 0
         imageList, prop = loadImages(folderList[folderCount])
         classId = prop[0][-1]
@@ -221,7 +221,7 @@ def test(svm):
     hog = getHOG()
     dataset = []
     datalabels = []
-    folderCount = 3
+    folderCount = 0
     folderList = getFolderList("Testing")
     dataCount = 0
     signs = [1, 14, 17, 19,21,35, 38, 45]
@@ -236,7 +236,7 @@ def test(svm):
         des = hog.compute(new_img)
         b.append(des)
     ''' 
-    while folderCount < 4:#len(folderList):
+    while folderCount < 1:#len(folderList):
         print('folder count', folderCount)
         imageCount = 0
         imageList, prop = loadImages(folderList[folderCount])
@@ -250,7 +250,7 @@ def test(svm):
             new_img = resize(new_img, prop[imageCount])
             des = hog.compute(new_img)
             dataset.append(des)
-            datalabels.append(int(0))
+            datalabels.append(int(1))
             cv2.imshow('frame', new_img)
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
