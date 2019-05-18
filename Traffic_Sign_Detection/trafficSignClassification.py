@@ -17,6 +17,10 @@ except:
 import cv2
 from boundingBox import *
 
+redSVM = cv2.ml.SVM_load('Models/redSVM.dat')
+blueSVM = cv2.ml.SVM_load('Models/blueSVM.dat')
+svm = cv2.ml.SVM_load('Models/svm.dat')
+    
 def last_4chars(x):
     return(x[-5:])
 
@@ -133,10 +137,6 @@ def train_traffic_signs(name):
     return svm
 
 def computeClass(data):
-    redSVM = cv2.ml.SVM_load('redSVM.dat')
-    blueSVM = cv2.ml.SVM_load('blueSVM.dat')
-    svm = cv2.ml.SVM_load('svm.dat')
-    
     if redSVM.predict(data)[1].ravel() or blueSVM.predict(data)[1].ravel():
         return svm.predict(data)[1].ravel()
     else:
