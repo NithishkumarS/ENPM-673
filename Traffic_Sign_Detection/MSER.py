@@ -125,10 +125,12 @@ def boundingBox_mser(new_img):
     imr, imb = contrastNormalize(new_img)
 
     # finding the red traffic signs
-    new_img, corners = MSER(imr, new_img, 2)
+    bounded_img, corners = MSER(imr, new_img, 2)
+    new_img = validateBox(new_img, corners)
 
     # Finding the blue traffic signs
-    new_img, corners = MSER(imb, new_img, 1)
+    bounded_img, corners = MSER(imb, new_img, 1)
+    new_img = validateBox(new_img, corners)
 
     return new_img
 
