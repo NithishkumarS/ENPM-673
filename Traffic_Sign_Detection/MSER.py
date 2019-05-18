@@ -60,7 +60,7 @@ def imadjust(x,a,b,c,d,gamma=1):
 
 def boundingBox_mser(new_img):
     imr, imb = contrastNormalize(new_img)
-    # new_img = MSER(imr, new_img)
+    new_img = MSER(imr, new_img)
     new_img = MSER(imb, new_img)
     return new_img
 
@@ -69,15 +69,14 @@ def MSER(img, new_img):
     img = img*255
     img = img.astype(np.uint8)
     new_img = new_img.copy()
-    mser = cv2.MSER_create(_delta = 8, _min_diversity = 0.8, _max_variation = .2)
-    # img = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+    mser = cv2.MSER_create(_delta = 4, _min_diversity = 0.8, _max_variation = .2)
     regions, boxes = mser.detectRegions(img)
     for p in regions:
         xmax, ymax = np.amax(p, axis=0)
         xmin, ymin = np.amin(p, axis=0)
-        # w = xmax - xmin
-        # h = ymax - ymin
-        # if h >= 0.9*w and w*h > 100 and (h < 2.5*w) and w*h < 30000:
-        #     cv2.rectangle(new_img, (xmin,ymax), (xmax,ymin), (0, 255, 0), 1)
-        cv2.rectangle(new_img, (xmin,ymax), (xmax,ymin), (0, 255, 0), 1)
+        w = xmax - xmin
+        h = ymax - ymin
+        if h >= 0.9*w and w*h > 100 and (h < 2.5*w) and w*h < 30000:
+            cv2.rectangle(new_img, (xmin,ymax), (xmax,ymin), (0, 255, 0), 1)
+        # cv2.rectangle(new_img, (xmin,ymax), (xmax,ymin), (0, 255, 0), 1)
     return new_img
