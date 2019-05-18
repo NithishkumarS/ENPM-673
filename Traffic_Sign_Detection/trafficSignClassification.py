@@ -134,29 +134,42 @@ def train_traffic_signs(n):
     print("Training Done")
     return svm
 
-def validateBox(image, svm,n,x,y):
+def computeClass(data):
+    redSVM = cv2.ml.SVM_load('redSVM.dat')
+    blueSVM = cv2.ml.SVM_load('blueSVM.dat')
+    svm = cv2.ml.SVM_load('svm.dat')
+    
+    if redSVM.predict(data)[1].ravel() or blueSVM.predict(data)[1].ravel():
+        return svm.predict(data)[1].ravel()
+    else:
+        return -1
+
+def validateBox(image,corners):
     img = np.copy(image)
+    roi = img[corners[0]:corners[2], corners[1]:corners[3]]     # xmin, ymin, xmax, yax
+    cv2.rectangle(image, (corners[0], corners[1]), (corners[2], corners[3]), (0,0,255))
+    cv2.imshow('roi',roi)
+    cv2.waitKey(0)
     width = 64
     height = 64
     dim = (width, height)
     hog = getHOG()
     
-    folderList = getFolderList("Testing")
-    imageList, prop = loadImages(folderList[0])
+#     folderList = getFolderList("Testing")
+#     imageList, prop = loadImages(folderList[0])
 #     img = resize(image, prop[0])
-        
-    resized_img = cv2.resize(img, dim, interpolation = cv2.INTER_AREA) 
+    resized_img = cv2.resize(roi, dim, interpolation = cv2.INTER_AREA) 
     des = hog.compute(resized_img)
-    
+    '''
     dataset = np.squeeze(np.array(des)).reshape((1,-1))
-    print(dataset.shape)
-    print(svm.predict(dataset))
-    testResponse = svm.predict(dataset)[1].ravel()
-    print('respose', testResponse)
-    if testResponse == 1:
-        text = str(n)
-        cv2.putText(image, text, (x,y), cv2.FONT_HERSHEY_SCRIPT_SIMPLEX, 1.0, (0,0,255))
-    
+    response = computeClass(dataset)
+    '''
+    response = 2
+    if not response == -1:
+        text = str(response)
+        cv2.putText(image, text, (corners[0], corners[3]+25 ), cv2.FONT_HERSHEY_SCRIPT_SIMPLEX, 1.0, (0,0,255))
+    return image
+        
 def train():
     hog = getHOG()
     dataset = []
@@ -319,15 +332,14 @@ def main():
     #         print('current:::::::::::', i)
     #         image = cv2.imread('TSR/Testing/00001/00252_0000'+ str(i)+'.ppm')
     #         validateBox(image, svm)
-    
-    
         res = test(svm,i)
         wins.append(res)
     ''' 
-    svm = cv2.ml.SVM_load('svm1.dat')
-    
-      
-    
-    
+#     image = cv2.imread('TSR/Testing/00001/00252_0000'+ str(0)+'.ppm')
+    image = cv2.imread('TSR/input/image.032725.jpg')
+    corners = [1052,92,1098,158]
+    img = validateBox(image, corners)
+    cv2.imshow('img', img)
+    cv2.waitKey(0)
 if __name__ == "__main__":
     main()
