@@ -49,26 +49,23 @@ def redSeg(image):
     lower_red = np.array([0,50,50])
     upper_red = np.array([10,255,255])
     mask_light_red = cv2.inRange(hsv, lower_red, upper_red)
-    holes = mask_light_red.copy()
-    cv2.floodFill(holes, None, (0, 0), 255)
-
-    # invert holes mask, bitwise or with img fill in holes
-    holes = cv2.bitwise_not(holes)
-    mask_light_red = cv2.bitwise_or(mask_light_red, holes)
 
     # upper mask
     lower_red = np.array([170,50,50])
     upper_red = np.array([180,255,255])
     mask_dark_red = cv2.inRange(hsv, lower_red, upper_red)
-    holes = mask_dark_red.copy()
+
+    mask = mask_light_red + mask_dark_red
+
+    holes = mask.copy()
     cv2.floodFill(holes, None, (0, 0), 255)
 
     # invert holes mask, bitwise or with img fill in holes
     holes = cv2.bitwise_not(holes)
-    mask_dark_red = cv2.bitwise_or(mask_dark_red, holes)
+    mask = cv2.bitwise_or(mask, holes)
 
     # combining mask
-    red_mask = cv2.bitwise_and(image, image, mask = mask_light_red + mask_dark_red)
+    red_mask = cv2.bitwise_and(image, image, mask = mask)
 
     return red_mask
 
@@ -170,7 +167,7 @@ def MSER(img, new_img, mode):
     im2, contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     for cnt in contours:
         x,y,w,h = cv2.boundingRect(cnt)
-        if h >= 0.9*w and w*h > 100 and (h < 2.0*w) and w*h < 30000:
+        if h >= 0.9*w and w*h > 1000 and (h < 2.0*w) and w*h < 30000:
             corners.append([x,y,x+w,y+h])
             cv2.rectangle(new_img,(x,y),(x+w,y+h),(255,0,0),2)
 
