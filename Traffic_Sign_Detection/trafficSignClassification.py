@@ -146,24 +146,18 @@ def computeClass(data):
 
 def validateBox(image,corners):
     img = np.copy(image)
-    roi = img[corners[0]:corners[2], corners[1]:corners[3]]     # xmin, ymin, xmax, yax
+    roi = img[corners[1]:corners[3], corners[0]:corners[2]]     # xmin, ymin, xmax, yax
     cv2.rectangle(image, (corners[0], corners[1]), (corners[2], corners[3]), (0,0,255))
-    cv2.imshow('roi',roi)
-    cv2.waitKey(0)
     width = 64
     height = 64
     dim = (width, height)
     hog = getHOG()
     
-#     folderList = getFolderList("Testing")
-#     imageList, prop = loadImages(folderList[0])
-#     img = resize(image, prop[0])
     resized_img = cv2.resize(roi, dim, interpolation = cv2.INTER_AREA) 
+    
     des = hog.compute(resized_img)
-    '''
     dataset = np.squeeze(np.array(des)).reshape((1,-1))
     response = computeClass(dataset)
-    '''
     response = 2
     if not response == -1:
         text = str(response)
