@@ -5,6 +5,7 @@ except:
     pass
 import cv2
 from boundingBox import *
+from trafficSignClassification import *
 
 def blueSeg(image):
     '''
@@ -126,12 +127,15 @@ def boundingBox_mser(new_img):
 
     # finding the red traffic signs
     bounded_img, corners = MSER(imr, new_img, 2)
-    new_img = validateBox(new_img, corners)
+    for corner in corners:
+        new_img = validateBox(new_img, corner)
 
     # Finding the blue traffic signs
     bounded_img, corners = MSER(imb, new_img, 1)
-    new_img = validateBox(new_img, corners)
-
+    # print(corners)
+    for corner in corners:
+        new_img = validateBox(new_img, corner)
+        
     return new_img
 
 def MSER(img, new_img, mode):
