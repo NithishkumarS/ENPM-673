@@ -138,6 +138,7 @@ def MSER(img, new_img, mode):
         Input: Constrast Image, Original Image, Mode (1 or 2)
         Output: Original Image with bounding box, corners points of potential traffic sign
     '''
+
     # Pre process
     img = masker(img)
     img = img*255
@@ -160,6 +161,7 @@ def MSER(img, new_img, mode):
         masked_image=blueSeg(masked_image)
     elif mode==2:
         masked_image=redSeg(masked_image)
+
 
     # Finding the corners points of the potential bounded box
     im = cv2.cvtColor(masked_image, cv2.COLOR_BGR2GRAY)
