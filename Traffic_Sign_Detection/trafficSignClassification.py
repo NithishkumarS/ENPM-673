@@ -138,8 +138,6 @@ def train_traffic_signs(name):
 
 def computeClass(data):
     return svm.predict(data)[1].ravel()
-    print('Blur Value',blueSVM.predict(data)[1].ravel())
-    print('predict value', svm.predict(data)[1].ravel())
     if redSVM.predict(data)[1].ravel() or blueSVM.predict(data)[1].ravel():
         return svm.predict(data)[1].ravel()
     else:
