@@ -74,15 +74,15 @@ def getHOG():
     hog = cv2.HOGDescriptor(winSize,blockSize,blockStride,cellSize,nbins,derivAperture,winSigma,histogramNormType,L2HysThreshold,gammaCorrection,nlevels, signedGradients)
     return hog
 
-def train_traffic_signs(n):
+def train_traffic_signs(name):
 
     hog = getHOG()
     dataset = []
     datalabels = []
-    folderCount = n
+    folderCount = 5
     folderList = getFolderList("Training")
     dataCount = 0
-    while folderCount < n+1:#len(folderList):
+    while folderCount < len(folderList):
         imageCount = 0
         imageList, prop = loadImages(folderList[folderCount])
         classId = prop[0][-1]
@@ -92,13 +92,12 @@ def train_traffic_signs(n):
             des = hog.compute(new_img)
             dataset.append(des)
             datalabels.append(int(1))
-            # print(int(classId))
+
             cv2.imshow('frame', new_img)
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
             imageCount = imageCount + 1
             dataCount = dataCount + 1
-            # print(imageCount)
         folderCount = folderCount + 1
         cv2.destroyAllWindows()
     
@@ -119,18 +118,17 @@ def train_traffic_signs(n):
     svm.setP(0)
     svm.setCoef0(0)
     svm.setNu(.5)
+
     # Set parameter Gamma
     svm.setGamma(1)
 
     # Train SVM on training data
     dataset = np.squeeze(np.array(dataset))
-    print(dataset.shape)
     datalabels = np.array(datalabels)
-    print(datalabels)
     svm.train(dataset, cv2.ml.ROW_SAMPLE, datalabels)
 
     # Save trained model
-    svm.save('Models/svm'+str(n+1) +'.dat')
+    svm.save('Models/'+ name +'.dat')
     print("Training Done")
     return svm
 
@@ -154,7 +152,6 @@ def validateBox(image,corners):
     hog = getHOG()
     
     resized_img = cv2.resize(roi, dim, interpolation = cv2.INTER_AREA) 
-    
     des = hog.compute(resized_img)
     dataset = np.squeeze(np.array(des)).reshape((1,-1))
     response = computeClass(dataset)
@@ -172,7 +169,7 @@ def train():
     folderList = getFolderList("Training")
     dataCount = 0
     
-    while folderCount < len(folderList):
+    while folderCount < 5:#len(folderList):
         imageCount = 0
         imageList, prop = loadImages(folderList[folderCount])
         classId = prop[0][-1]
@@ -246,11 +243,11 @@ def train():
     return svm
 
 
-def test(svm, n):
+def test(svm):
     hog = getHOG()
     dataset = []
     datalabels = []
-    folderCount = n
+    folderCount = 5
     folderList = getFolderList("Testing")
     dataCount = 0
     imageCount = 0
@@ -265,7 +262,7 @@ def test(svm, n):
         b.append(des)
      '''#----------------------------------------------------------------------------------
      
-    while folderCount < n+1:#len(folderList):
+    while folderCount < len(folderList):
         print('folder count', folderCount)
         imageCount = 0
         imageList, prop = loadImages(folderList[folderCount])
@@ -278,7 +275,7 @@ def test(svm, n):
             new_img = cv2.imread(folderList[folderCount] + prop[imageCount][0])
             new_img = resize(new_img, prop[imageCount])
             des = hog.compute(new_img)
-            print(des.shape)
+
             dataset.append(des)
             datalabels.append(int(1))
             cv2.imshow('frame', new_img)
@@ -328,12 +325,16 @@ def main():
     #         validateBox(image, svm)
         res = test(svm,i)
         wins.append(res)
-    ''' 
+    '''
+    '''
 #     image = cv2.imread('TSR/Testing/00001/00252_0000'+ str(0)+'.ppm')
     image = cv2.imread('TSR/input/image.032725.jpg')
     corners = [1052,92,1098,158]
     img = validateBox(image, corners)
     cv2.imshow('img', img)
     cv2.waitKey(0)
+    '''
+    svm = train_traffic_signs('blueSVM')
+    res = test(svm)
 if __name__ == "__main__":
     main()
