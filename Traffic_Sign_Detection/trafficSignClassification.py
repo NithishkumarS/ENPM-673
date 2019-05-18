@@ -17,6 +17,10 @@ except:
 import cv2
 from boundingBox import *
 
+redSVM = cv2.ml.SVM_load('Models/redSVM.dat')
+blueSVM = cv2.ml.SVM_load('Models/blueSVM.dat')
+svm = cv2.ml.SVM_load('Models/svm.dat')
+
 def last_4chars(x):
     return(x[-5:])
 
@@ -27,8 +31,8 @@ def getFolderList(fol_str):
         if not basename:
             folderList.append(filename)
     folderList = sorted(folderList, key = last_4chars)
-    for i in range(len(folderList)):   
-        print('i:',i)  
+    for i in range(len(folderList)):
+        print('i:',i)
         folderList[i] ="TSR/" + fol_str + "/" + folderList[i] + "/"
 
     return folderList
@@ -100,7 +104,7 @@ def train_traffic_signs(name):
             dataCount = dataCount + 1
         folderCount = folderCount + 1
         cv2.destroyAllWindows()
-    
+
     # Set up SVM for OpenCV 3
     svm = cv2.ml.SVM_create()
 
@@ -133,10 +137,9 @@ def train_traffic_signs(name):
     return svm
 
 def computeClass(data):
-    redSVM = cv2.ml.SVM_load('redSVM.dat')
-    blueSVM = cv2.ml.SVM_load('blueSVM.dat')
-    svm = cv2.ml.SVM_load('svm.dat')
-    
+    return svm.predict(data)[1].ravel()
+    print('Blur Value',blueSVM.predict(data)[1].ravel())
+    print('predict value', svm.predict(data)[1].ravel())
     if redSVM.predict(data)[1].ravel() or blueSVM.predict(data)[1].ravel():
         return svm.predict(data)[1].ravel()
     else:
@@ -150,17 +153,17 @@ def validateBox(image,corners):
     height = 64
     dim = (width, height)
     hog = getHOG()
-    
-    resized_img = cv2.resize(roi, dim, interpolation = cv2.INTER_AREA) 
+
+    resized_img = cv2.resize(roi, dim, interpolation = cv2.INTER_AREA)
     des = hog.compute(resized_img)
     dataset = np.squeeze(np.array(des)).reshape((1,-1))
     response = computeClass(dataset)
-    response = 2
+    print(response)
     if not response == -1:
         text = str(response)
         cv2.putText(image, text, (corners[0], corners[3]+25 ), cv2.FONT_HERSHEY_SCRIPT_SIMPLEX, 1.0, (0,0,255))
     return image
-        
+
 def train():
     hog = getHOG()
     dataset = []
@@ -168,7 +171,7 @@ def train():
     folderCount = 0
     folderList = getFolderList("Training")
     dataCount = 0
-    
+
     while folderCount < len(folderList):
         imageCount = 0
         imageList, prop = loadImages(folderList[folderCount])
@@ -190,7 +193,7 @@ def train():
         cv2.destroyAllWindows()
 #     print('dataset', len(dataset))
     # rbf    gamm = 0.9 c =5
-    
+
     # Set up SVM for OpenCV 3
     svm = cv2.ml.SVM_create()
 
@@ -234,12 +237,12 @@ def test(svm):
     a = np.zeros((64,64,3), dtype = np.uint8)
     b = []
     for i in range(3):
-            
+
         new_img = resize(a[0], None)
         des = hog.compute(new_img)
         b.append(des)
      '''#----------------------------------------------------------------------------------
-     
+
     while folderCount < len(folderList):
         print('folder count', folderCount)
         imageCount = 0
@@ -261,10 +264,10 @@ def test(svm):
                 break
             imageCount = imageCount + 1
             dataCount = dataCount + 1
-            
+
         folderCount = folderCount + 1
         cv2.destroyAllWindows()
-    
+
     dataset = np.squeeze(np.array(dataset))
     testResponse = svm.predict(dataset)[1].ravel()
     count = 0
@@ -278,7 +281,7 @@ def test(svm):
     print(datalabels)
     percentage = float(len(datalabels)-count)/(len(datalabels))*100
     print('Percentage: ', float(len(datalabels)-count)/(len(datalabels))*100)
-    
+
     print('unique responses: ',np.unique(testResponse))
     return percentage
 
@@ -304,12 +307,13 @@ def main():
     cv2.waitKey(0)
     '''
 #     svm = train_traffic_signs('blueSVM')
-    svm = train()
-    res = test(svm)
+    # svm = train()
+    # res = test(svm)
+
 if __name__ == "__main__":
     main()
-    
-    
+
+
     '''
     #Visualize model
     x_min, x_max = dataset[:, 0].min() - 1, dataset[:, 0].max() + 1
@@ -317,12 +321,12 @@ if __name__ == "__main__":
     h = (x_max / x_min)/100
     xx, yy = np.meshgrid(np.arange(x_min, x_max, h),
      np.arange(y_min, y_max, h))
-    
+
     plt.subplot(1, 1, 1)
     Z = svm.predict(np.c_[xx.ravel(), yy.ravel()])
     Z = Z.reshape(xx.shape)
     plt.contourf(xx, yy, Z, cmap=plt.cm.Paired, alpha=0.8)
-    
+
     plt.scatter(dataset[:, 0], dataset[:, 1], c=datalabels, cmap=plt.cm.Paired)
     plt.xlabel('Sepal length')
     plt.ylabel('Sepal width')
