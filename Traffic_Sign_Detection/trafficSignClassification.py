@@ -74,14 +74,15 @@ def getHOG():
     hog = cv2.HOGDescriptor(winSize,blockSize,blockStride,cellSize,nbins,derivAperture,winSigma,histogramNormType,L2HysThreshold,gammaCorrection,nlevels, signedGradients)
     return hog
 
-def train_traffic_signs():
+def train_traffic_signs(n):
+
     hog = getHOG()
     dataset = []
     datalabels = []
-    folderCount = 0
+    folderCount = n
     folderList = getFolderList("Training")
     dataCount = 0
-    while folderCount < 1:#len(folderList):
+    while folderCount < n+1:#len(folderList):
         imageCount = 0
         imageList, prop = loadImages(folderList[folderCount])
         classId = prop[0][-1]
@@ -129,10 +130,33 @@ def train_traffic_signs():
     svm.train(dataset, cv2.ml.ROW_SAMPLE, datalabels)
 
     # Save trained model
-    svm.save("svm_signs_model.yml")
+    svm.save('Models/svm'+str(n+1) +'.dat')
     print("Training Done")
     return svm
 
+def validateBox(image, svm,n,x,y):
+    img = np.copy(image)
+    width = 64
+    height = 64
+    dim = (width, height)
+    hog = getHOG()
+    
+    folderList = getFolderList("Testing")
+    imageList, prop = loadImages(folderList[0])
+#     img = resize(image, prop[0])
+        
+    resized_img = cv2.resize(img, dim, interpolation = cv2.INTER_AREA) 
+    des = hog.compute(resized_img)
+    
+    dataset = np.squeeze(np.array(des)).reshape((1,-1))
+    print(dataset.shape)
+    print(svm.predict(dataset))
+    testResponse = svm.predict(dataset)[1].ravel()
+    print('respose', testResponse)
+    if testResponse == 1:
+        text = str(n)
+        cv2.putText(image, text, (x,y), cv2.FONT_HERSHEY_SCRIPT_SIMPLEX, 1.0, (0,0,255))
+    
 def train():
     hog = getHOG()
     dataset = []
@@ -210,21 +234,18 @@ def train():
     # Save trained model
     svm.save("svm_model.yml")
 
-    # cross validation
-
     print("Training Done")
 
     return svm
 
-def test(svm):
+def test(svm, n):
 
     hog = getHOG()
     dataset = []
     datalabels = []
-    folderCount = 0
+    folderCount = n
     folderList = getFolderList("Testing")
     dataCount = 0
-    signs = [1, 14, 17, 19,21,35, 38, 45]
     imageCount = 0
     '''
     ## Dark image test case --------------------------------------------------------------
@@ -235,8 +256,9 @@ def test(svm):
         new_img = resize(a[0], None)
         des = hog.compute(new_img)
         b.append(des)
-    ''' 
-    while folderCount < 1:#len(folderList):
+     '''#----------------------------------------------------------------------------------
+     
+    while folderCount < n+1:#len(folderList):
         print('folder count', folderCount)
         imageCount = 0
         imageList, prop = loadImages(folderList[folderCount])
@@ -249,6 +271,7 @@ def test(svm):
             new_img = cv2.imread(folderList[folderCount] + prop[imageCount][0])
             new_img = resize(new_img, prop[imageCount])
             des = hog.compute(new_img)
+            print(des.shape)
             dataset.append(des)
             datalabels.append(int(1))
             cv2.imshow('frame', new_img)
@@ -260,19 +283,8 @@ def test(svm):
         folderCount = folderCount + 1
         cv2.destroyAllWindows()
     
-#     dataset = np.squeeze(np.array(b))
-    
     dataset = np.squeeze(np.array(dataset))
-#     op = svm.predict(dataset)
-#     print('op',op)
-    
-#     confidence = 1.0 / (1.0 + np.exp(op[1].ravel()))
-#     print('confidence', confidence)
-# 
-#     datalabels = np.ones(3)
     testResponse = svm.predict(dataset)[1].ravel()
-    print('test response', testResponse)
-    
     count = 0
     for i in range(len(testResponse)):
         if (testResponse[i] - datalabels[i]) != 0.0:
@@ -280,21 +292,41 @@ def test(svm):
             print('Actual Value:', datalabels[i])
             count = count + 1
 
-
     print(np.array(testResponse))
     print(datalabels)
+    percentage = float(len(datalabels)-count)/(len(datalabels))*100
     print('Percentage: ', float(len(datalabels)-count)/(len(datalabels))*100)
-    print(np.unique(testResponse))
+    
+    print('unique responses: ',np.unique(testResponse))
+    return percentage
 
-    return 0
+def saveModels():
+    svm = train_traffic_signs(0)
+    test(svm)
+    print('done with 1:::::::::::::::::::::::::')
+    svm.save('svm.dat')
+    svm2 = cv2.ml.SVM_load('svm.dat')
+    test(svm2)
 
 def main():
     """ Main entry point of the app """
-    svm = train_traffic_signs()
-#     svm = train()
-    #     print('SVM',svm)
-    test(svm)
-    # test()
-
+    '''
+    wins = []
+    for i in range(8):
+        svm = train_traffic_signs(i)
+    #     for i in range(3):
+    #         print('current:::::::::::', i)
+    #         image = cv2.imread('TSR/Testing/00001/00252_0000'+ str(i)+'.ppm')
+    #         validateBox(image, svm)
+    
+    
+        res = test(svm,i)
+        wins.append(res)
+    ''' 
+    svm = cv2.ml.SVM_load('svm1.dat')
+    
+      
+    
+    
 if __name__ == "__main__":
     main()
