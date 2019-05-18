@@ -66,9 +66,10 @@ def boundingBox_mser(new_img):
 
 def MSER(img, new_img):
     img = masker(img)
-    img = np.uint8(img)
+    img = img*255
+    img = img.astype(np.uint8)
     new_img = new_img.copy()
-    mser = cv2.MSER_create(_delta = 2, _min_diversity = 0.8, _max_variation = .2)
+    mser = cv2.MSER_create(_delta = 8, _min_diversity = 0.8, _max_variation = .2)
     # img = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
     regions, boxes = mser.detectRegions(img)
     for p in regions:
