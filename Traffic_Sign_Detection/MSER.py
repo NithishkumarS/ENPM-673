@@ -124,18 +124,23 @@ def boundingBox_mser(new_img):
 
     # Contrast Normalizing the image
     imr, imb = contrastNormalize(new_img)
+    # cv2.imshow('imr', imb)
+    # cv2.waitKey(0)
 
     # finding the red traffic signs
     bounded_img, corners = MSER(imr, new_img, 2)
+
     for corner in corners:
-        new_img = validateBox(new_img, corner)
+        new_img = validateBox(new_img, corner, 2)
 
     # Finding the blue traffic signs
     bounded_img, corners = MSER(imb, new_img, 1)
+    # cv2.imwrite('red_bounded_img.png',bounded_img)
     # print(corners)
     for corner in corners:
-        new_img = validateBox(new_img, corner)
-        
+        new_img = validateBox(new_img, corner, 1)
+    # cv2.imwrite('Output.png',new_img)
+
     return new_img
 
 def MSER(img, new_img, mode):
@@ -144,11 +149,11 @@ def MSER(img, new_img, mode):
         Input: Constrast Image, Original Image, Mode (1 or 2)
         Output: Original Image with bounding box, corners points of potential traffic sign
     '''
-
     # Pre process
     img = masker(img)
     img = img*255
     img = img.astype(np.uint8)
+    # cv2.imwrite('red_contrast.png',img)
     new_img = new_img.copy()
 
     # Find MSER
@@ -163,12 +168,13 @@ def MSER(img, new_img, mode):
 
     # Processing the mask usign the hsv image threshold
     masked_image = cv2.bitwise_and(new_img, new_img, mask = mask)
+    # cv2.imwrite('red_masked_image_MSER.png',masked_image)
     if mode==1:
         masked_image=blueSeg(masked_image)
     elif mode==2:
         masked_image=redSeg(masked_image)
 
-
+    # cv2.imwrite('red_masked_image_segmented.png',masked_image)
     # Finding the corners points of the potential bounded box
     im = cv2.cvtColor(masked_image, cv2.COLOR_BGR2GRAY)
     ret, thresh = cv2.threshold(im, 5, 255, 0)

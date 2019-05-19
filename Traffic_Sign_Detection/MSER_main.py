@@ -39,8 +39,8 @@ def main():
         frame = cv2.resize(frame,(800,600))
         new_img = cv2.resize(new_img,(800,600))
         cv2.imshow('frame', frame)
-        cv2.imshow('Input Image',new_img)
-        if cv2.waitKey(1) & 0xFF == ord('q'):
+        # cv2.imshow('Input Image',new_img)
+        if cv2.waitKey(0) & 0xFF == ord('q'):
             break
         frameCount = frameCount + 1
         print(frameCount)
