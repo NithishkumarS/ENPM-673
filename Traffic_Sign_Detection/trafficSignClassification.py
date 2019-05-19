@@ -16,10 +16,18 @@ except:
     pass
 import cv2
 from boundingBox import *
+from sklearn.svm import SVC
+from skimage.feature import hog
+from skimage import data, exposure
+import pickle
 
-redSVM = cv2.ml.SVM_load('Models/redSVM.dat')
-blueSVM = cv2.ml.SVM_load('Models/blueSVM.dat')
-svm = cv2.ml.SVM_load('Models/svm.dat')
+# redSVM = cv2.ml.SVM_load('Models/redSVM.dat')
+# blueSVM = cv2.ml.SVM_load('Models/blueSVM.dat')
+# svm = cv2.ml.SVM_load('Models/svm.dat')
+with open('Models/mainsvm_data', 'rb') as f:
+    svm = pickle.load(f)
+# with open('Models/redsvm_data', 'rb') as f:
+#     redsvm = pickle.load(f)
 
 def last_4chars(x):
     return(x[-5:])
@@ -136,30 +144,56 @@ def train_traffic_signs(name):
     print("Training Done")
     return svm
 
-def computeClass(data):
-    return svm.predict(data)[1].ravel()
-    if redSVM.predict(data)[1].ravel() or blueSVM.predict(data)[1].ravel():
-        return svm.predict(data)[1].ravel()
-    else:
+def computeClass(data, mode):
+    # return svm.predict(data)[1].ravel()
+    # print('rednoise', rednoise.predict(data))
+    # print('bluenoise', bluenoise.predict(data))
+    feature_arr = ['1','14','17','19','21','35','38','45']
+    print('mode', mode)
+    print(data.shape)
+    val = svm.predict_proba(data)
+    maxId = np.amax(val)
+    if val[maxId] < 0.5:
         return -1
+    else:
+        return feature_arr[maxId]
+    # print('redsvm', redsvm.predict(data))
+    # print('bluesvm', bluesvm.predict(data))
+    # # if mode == 2
+    # if mode == 2:
+    #     if redsvm.predict(data)[0] == '100':
+    #         return -1
+    #     else:
+    #         return redsvm.predict(data)
+    # elif mode == 1:
+    #     if bluesvm.predict(data)[0] == '100':
+    #         return -1
+    #     else:
+    #         return bluesvm.predict(data)
+    # else:
+    #     return -1
 
-def validateBox(image,corners):
+
+def validateBox(image,corners, mode):
     img = np.copy(image)
     roi = img[corners[1]:corners[3], corners[0]:corners[2]]     # xmin, ymin, xmax, yax
-    cv2.rectangle(image, (corners[0], corners[1]), (corners[2], corners[3]), (0,0,255))
     width = 64
     height = 64
     dim = (width, height)
-    hog = getHOG()
+    # hog = getHOG()
 
     resized_img = cv2.resize(roi, dim, interpolation = cv2.INTER_AREA)
-    des = hog.compute(resized_img)
-    dataset = np.squeeze(np.array(des)).reshape((1,-1))
-    response = computeClass(dataset)
+    # resized_img = cv2.cvtColor(resized_img, cv2.COLOR_BGR2GRAY)
+    des = hog(resized_img, orientations=32, pixels_per_cell=(4, 4),
+            cells_per_block=(1, 1), visualize=True, multichannel=True, block_norm='L2-Hys')
+    print(np.squeeze(des))
+    dataset = (np.array(des)).reshape((1,len(des)))
+    response = computeClass(dataset, mode)
     print(response)
     if not response == -1:
         text = str(response)
-        cv2.putText(image, text, (corners[0], corners[3]+25 ), cv2.FONT_HERSHEY_SCRIPT_SIMPLEX, 1.0, (0,0,255))
+        cv2.rectangle(image, (corners[0], corners[1]), (corners[2], corners[3]), (0,255,0), 2)
+        cv2.putText(image, text, (corners[0], corners[3]+25 ), cv2.FONT_HERSHEY_SCRIPT_SIMPLEX, 1.0, (0,255,0), 2)
     return image
 
 def train():
