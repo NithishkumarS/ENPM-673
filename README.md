@@ -11,11 +11,11 @@ Traffic Sign Detection
 ```
 
 Lane Detection <br />
-![](lane_detection.gif)
+![](demo/lane_detection.gif)
 
 Visual Odometry <br />
-![](VOM.gif)
+![](demo/VOM.gif)
 
 Traffic Sign Detection <br />
-![](sign_detection.gif)
+![](demo/sign_detection.gif)
 
